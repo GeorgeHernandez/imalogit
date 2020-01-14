@@ -1,0 +1,2 @@
+# imalogit
+Quickly log stuff.
