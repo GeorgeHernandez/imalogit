@@ -1,0 +1,25 @@
+# Windows:
+Desktop.ini
+ehthumbs.db
+Thumbs.db
+
+# Temp:
+.loadpath
+.settings
+.vscode
+*_vti_*
+*.bak
+*.ignore
+*.orig
+*.swp
+*.tmp
+*.zip
+*~
+*~.nib
+local.properties
+Log
+log
+node_modules
+package-lock.json
+Temp
+temp
