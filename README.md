@@ -1,5 +1,7 @@
-# imalogit
+# Ima Log It
 
-Quickly log stuff.
+Log stuff quickly.
 
-The goal of this app is to allow users to quickly access logs, log entries, and see simple run-time charts.
+The goal of this app is to allow users to quickly access logs, log entries, and see simple run-time charts. For more, see our [About Us](https://imalogit.com/about.html).
+
+This code repository contains the front end code for the site.
