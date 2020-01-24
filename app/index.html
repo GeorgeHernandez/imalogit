@@ -14,6 +14,8 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+  <!-- AWS stuff: -->
+  <script src="https://sdk.amazonaws.com/js/aws-sdk-2.609.0.min.js"></script>
 </head>
 <body style="padding-top: 30px;">
 
@@ -27,6 +29,24 @@
         <li class="nav-item">
           <a class="nav-link" href="/app/signOut.html">Sign Out</a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="https://blog.imalogit.com/">Blog</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/about.html">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/contactUs.html">Contact</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/help.html">Help</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/privacyPolicy.html">Privacy</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/termsAndConditions.html">Terms</a>
+        </li>
       </ul>
     </div>
   </nav>
@@ -36,6 +56,44 @@
 
     <p>This page will show your list of logs and allow you to manage them.</p>
   </div>
+
+
+  <script>
+    // The user should have signed in with Cognito.
+    const hashParams = new URLSearchParams(window.location.hash.substr(1));
+    const id_token = hashParams.get('id_token');
+    // console.log('id_token: ' + id_token);
+    // const access_token = hashParams.get('access_token');
+    // console.log('access_token: ' + access_token);
+    // const hash_code = hashParams.get('code');
+    // console.log('hash_code: ' + hash_code);
+
+    // Set up:
+    const bearer = 'Bearer ' + id_token;
+    const stage = 'dev';
+    const api = 'https://pztos629cg.execute-api.us-east-1.amazonaws.com' + '/' + stage + '/';
+    const origin = 'https://imalogit.com';
+
+    async function asyncIt(api, bearer) {
+      try {
+        const response = await fetch(api, {
+          headers: {
+            'Origin': origin,
+            'Authorization': bearer
+          },
+          method: 'GET'
+        });
+
+        const json = await response.json();
+        console.log('json in async: ', json);
+        // console.log('name in async: ', json.name);
+        // document.getElementById('asyncAnswer').innerHTML = json.name;
+      } catch (error) {
+        console.log('Error: ', error)
+      }
+    };
+    asyncIt(api, bearer); // returns a promise, but skip it
+  </script>
 
 </body>
 </html>
