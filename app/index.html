@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Logs List</title>
+  <title>Signed In</title>
   <!-- favicon stuff: -->
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
@@ -52,11 +52,11 @@
   </nav>
 
   <div class="jumbotron text-center" style="margin-bottom:0">
-    <h1>Logs</h1>
+    <h1>Signed In</h1>
 
-    <p>This page will show your list of logs and allow you to manage them.</p>
+    <p>Hello <span id='asyncAnswer'></span>!</p>
+    <p>(This page currently shows after your sign in, but should eventually forward you to the Logs List page.)</p>
   </div>
-
 
   <script>
     // The user should have signed in with Cognito.
@@ -87,7 +87,8 @@
         const json = await response.json();
         console.log('json in async: ', json);
         // console.log('name in async: ', json.name);
-        // document.getElementById('asyncAnswer').innerHTML = json.name;
+        console.log('sub in async: ', json.sub);
+        document.getElementById('asyncAnswer').innerHTML = json.name;
       } catch (error) {
         console.log('Error: ', error)
       }
