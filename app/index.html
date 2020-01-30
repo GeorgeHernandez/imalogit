@@ -54,7 +54,7 @@
   <div class="jumbotron text-center" style="margin-bottom:0">
     <h1>Signed In</h1>
 
-    <p>Hello <span id='asyncAnswer'></span>!</p>
+    <p><span id='asyncAnswer'></span></p>
     <p>(This page currently shows after your sign in, but should eventually forward you to the Logs List page.)</p>
   </div>
 
@@ -87,7 +87,7 @@
         // console.log('json in async: ', json);
         // console.log('name in async: ', json.email);
         // console.log('sub in async: ', json.sub);
-        document.getElementById('asyncAnswer').innerHTML = json.email;
+        document.getElementById('asyncAnswer').innerHTML = '<mark>' + json.email + '</mark> has signed in.';
       } catch (error) {
         console.log('Error: ', error)
       }
