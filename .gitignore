@@ -19,7 +19,8 @@ Thumbs.db
 local.properties
 Log
 log
-node_modules
+**/node_modules/*
+!**/node_modules/util
 package-lock.json
 Temp
 temp
