@@ -1,0 +1,20 @@
+{
+  "name": "uno",
+  "version": "1.0.0",
+  "description": "Primary layer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Cognito"
+  ],
+  "author": "George Hernandez <george.hernandez+dev@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "base64url": "^3.0.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.3",
+    "node-fetch": "^2.6.0"
+  }
+}
