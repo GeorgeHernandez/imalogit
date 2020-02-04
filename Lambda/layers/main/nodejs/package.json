@@ -1,12 +1,12 @@
 {
-  "name": "main",
+  "name": "nodejs",
   "version": "1.0.0",
   "description": "The main layer for the site",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["Cognito"],
   "author": "George Hernandez <georgelhernandez+dev@gmail.com>",
   "license": "ISC",
   "dependencies": {
@@ -14,5 +14,6 @@
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.3",
     "node-fetch": "^2.6.0"
-  }
+  },
+  "devDependencies": {}
 }

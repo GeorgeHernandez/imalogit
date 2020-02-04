@@ -3,16 +3,17 @@
   "version": "1.0.0",
   "description": "3rd party libraries for Lambda layer `3rdParty`",
   "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["Cognito"],
+  "author": "Roji Health Intelligence LLC",
+  "license": "ISC",
   "dependencies": {
     "base64url": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.3",
     "node-fetch": "^2.6.0"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Roji Health Intelligence LLC",
-  "license": "ISC"
+  "devDependencies": {}
 }
