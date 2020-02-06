@@ -84,7 +84,7 @@
         });
 
         const json = await response.json();
-        // console.log('json in async: ', json);
+        console.log('json in async: ', json);
         // console.log('name in async: ', json.email);
         // console.log('sub in async: ', json.sub);
         document.getElementById('asyncAnswer').innerHTML = '<mark>' + json.email + '</mark> has signed in.';

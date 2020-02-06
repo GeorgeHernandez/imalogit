@@ -2,6 +2,7 @@ const base64url = require('base64url');
 const fetch = require('node-fetch');
 const jtp = require('jwk-to-pem');
 const jwt = require('jsonwebtoken');
+const util = require('util/util.js');
 
 exports.handler = async (event) => {
     // Verifying a JSON Web Token (https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html)
@@ -66,6 +67,7 @@ exports.handler = async (event) => {
     // Now do whatever you want with the verified claims!
     body.email = claims.email;
     body.sub = claims.sub; // Subject, i.e. the UUID for the user in the Cognito user pool
+    body.foo = util.foo;
 
     const response = {
         statusCode: 200,
