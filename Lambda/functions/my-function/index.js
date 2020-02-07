@@ -1,8 +1,13 @@
+const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
+const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
+const AWS = require('aws-sdk');
 const base64url = require('base64url');
 const fetch = require('node-fetch');
+// global.fetch = require('node-fetch');
 const jtp = require('jwk-to-pem');
 const jwt = require('jsonwebtoken');
-const util = require('util/util.js');
+const request = require('request');
+const util = require('/opt/nodejs/util/util.js');
 
 exports.handler = async (event) => {
     // Verifying a JSON Web Token (https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html)
