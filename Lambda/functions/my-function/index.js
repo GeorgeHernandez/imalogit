@@ -1,13 +1,14 @@
 const AmazonCognitoIdentity = require('amazon-cognito-identity-js');
-const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
 const AWS = require('aws-sdk');
 const base64url = require('base64url');
+const CognitoUserPool = AmazonCognitoIdentity.CognitoUserPool;
 const fetch = require('node-fetch');
 // global.fetch = require('node-fetch');
 const jtp = require('jwk-to-pem');
 const jwt = require('jsonwebtoken');
 const request = require('request');
-const util = require('/opt/nodejs/util/util.js');
+const zession = require('./zorg/zession.js');
+
 
 exports.handler = async (event) => {
     // Verifying a JSON Web Token (https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html)
@@ -72,7 +73,8 @@ exports.handler = async (event) => {
     // Now do whatever you want with the verified claims!
     body.email = claims.email;
     body.sub = claims.sub; // Subject, i.e. the UUID for the user in the Cognito user pool
-    body.foo = util.foo;
+    body.foo = zession.foo;
+    // console.log("event: ", util.inspect(event, { showHidden: false, depth: null })); // To see input in CloudWatch
 
     const response = {
         statusCode: 200,
