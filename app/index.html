@@ -83,16 +83,16 @@
           method: 'GET'
         });
 
-        const body = await response.json();
-        console.log('body: ', body);
-        if (body.isValid) {
-          document.getElementById('asyncAnswer').innerHTML = '<mark>' + body.goodSignature.email + '</mark> has signed in.';
+        const data = await response.json();
+        console.log('data: ', data);
+        if (data.session.isValid) {
+          document.getElementById('asyncAnswer').innerHTML = '<mark>' + data.session.claims.email + '</mark> has signed in.';
         } else {
-          throw 'body.isValid: false';
+          throw 'data.session.isValid: false';
         }
       } catch (error) {
         console.log('Error: ', error);
-        document.getElementById('asyncAnswer').innerHTML = 'Sorry, there is some sort of error.';
+        document.getElementById('asyncAnswer').innerHTML = 'Sorry, there was an error.';
       }
     };
     asyncIt(api, origin, authorization); // returns a promise, but skip it
