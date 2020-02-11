@@ -55,6 +55,7 @@
     <h1>Signed In</h1>
 
     <p><span id='asyncAnswer'></span></p>
+    <p><a href="https://auth.imalogit.com/logout?client_id=1aosnlgh8roam75comsp77fhd1&logout_uri=https://imalogit.com/app/signOut.html">Sign Out</a></p>
     <p>(This page currently shows after your sign in, but should eventually forward you to the Logs List page.)</p>
   </div>
 
@@ -63,15 +64,27 @@
     const hashParams = new URLSearchParams(window.location.hash.substr(1));
     const id_token = hashParams.get('id_token');
     // console.log('id_token: ' + id_token);
-    // const access_token = hashParams.get('access_token');
+
+    const access_token = hashParams.get('access_token');
     // console.log('access_token: ' + access_token);
-    // const hash_code = hashParams.get('code');
-    // console.log('hash_code: ' + hash_code);
+
+    const queryParams = new URLSearchParams(window.location.search);
+    const code = queryParams.get('code');
+    // console.log('code: ' + code);
 
     // Set up:
     const api = 'https://api.imalogit.com/main/dev/';
     const origin = 'https://imalogit.com';
-    const authorization = 'Bearer ' + id_token;
+    const bearerType = 'id_token'; // set to either id_token, access_token, or code
+    let bearerValue;
+    if (bearerType === 'id_token') {
+      bearerValue = id_token;
+    } else if (bearerType === 'access_token') {
+      bearerValue = access_token;
+    } else if (bearerType === 'code') {
+      bearerValue = code;
+    }
+    const authorization = 'Bearer ' + bearerValue;
 
     async function asyncIt(api, origin, authorization) {
       try {
@@ -88,7 +101,7 @@
         if (data.session.isValid) {
           document.getElementById('asyncAnswer').innerHTML = '<mark>' + data.session.claims.email + '</mark> has signed in.';
         } else {
-          throw '{data.session.isValid: ' + data.session.isValid + ', data.session.error: ' + data.session.error + '}';
+          throw JSON.stringify(data);
         }
       } catch (e) {
         console.log('Error: ', e);
