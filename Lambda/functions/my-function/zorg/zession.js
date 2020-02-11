@@ -22,6 +22,7 @@ async function validateToken (token) {
     } else {
       body.goodStructure = false;
       body.isValid = false;
+      throw 'bad structure';
     }
 
     // Step 2: Validate the JWT Signature
@@ -48,6 +49,7 @@ async function validateToken (token) {
     } else {
       body.goodKid = false;
       body.isValid = false;
+      throw 'bad key i.';
     }
 
     // Step 2.3: Use key to verify the signature.
@@ -59,6 +61,7 @@ async function validateToken (token) {
     } else {
       body.goodSignature = {};
       body.isValid = false;
+      throw 'bad signature';
     }
 
     // Step 3: Verify the Claims
@@ -70,6 +73,7 @@ async function validateToken (token) {
     } else {
       body.goodTime = false;
       body.isValid = false;
+      throw 'token expired';
     }
 
     // Step 3.2: Verify that the aud claim matches the app client ID in the Cognito user pool.
@@ -79,6 +83,7 @@ async function validateToken (token) {
     } else {
       body.goodAppId = false;
       body.isValid = false;
+      throw 'bad app id';
     }
 
     // Step 3.3: Verify that the iss claim matches the Cognito user pool.
@@ -87,6 +92,7 @@ async function validateToken (token) {
     } else {
       body.goodIssuer = false;
       body.isValid = false;
+      throw 'bad issuer';
     }
 
     // Step 3.4: Verify the token_use claim.
@@ -97,6 +103,7 @@ async function validateToken (token) {
     } else {
       body.goodUse = false;
       body.isValid = false;
+      throw 'bad token use';
     }
 
     // TODO: Call refreshToken()
