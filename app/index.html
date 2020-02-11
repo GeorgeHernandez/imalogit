@@ -88,14 +88,14 @@
         if (data.session.isValid) {
           document.getElementById('asyncAnswer').innerHTML = '<mark>' + data.session.claims.email + '</mark> has signed in.';
         } else {
-          throw 'data.session.isValid: false';
+          throw '{data.session.isValid: ' + data.session.isValid + ', data.session.error: ' + data.session.error + '}';
         }
-      } catch (error) {
-        console.log('Error: ', error);
+      } catch (e) {
+        console.log('Error: ', e);
         document.getElementById('asyncAnswer').innerHTML = 'Sorry, there was an error.';
       }
     };
-    asyncIt(api, origin, authorization); // returns a promise, but skip it
+    asyncIt(api, origin, authorization);
   </script>
 
 </body>
