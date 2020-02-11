@@ -21,6 +21,10 @@ exports.handler = async (event) => {
     data.session.isValid = false;
   }
 
+  return makeResponse(data);
+};
+
+function makeResponse (data) {
   const response = {
     statusCode: 200,
     headers: {
@@ -30,4 +34,4 @@ exports.handler = async (event) => {
     body: JSON.stringify(data)
   };
   return response;
-};
+}
