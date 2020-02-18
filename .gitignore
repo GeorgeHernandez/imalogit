@@ -4,6 +4,7 @@ ehthumbs.db
 Thumbs.db
 
 # Temp:
+.cache
 .loadpath
 .settings
 .vscode
