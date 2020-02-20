@@ -8,7 +8,7 @@ const clientId = '1aosnlgh8roam75comsp77fhd1'
 const redirectUri = 'https://imalogit.com/app/index.html'
 const api = 'https://api.imalogit.com/main/dev/'
 const origin = 'https://imalogit.com'
-const bearerType = 'id_token' // set to either id_token, access_token, or code
+const bearerType = 'id_token' // set to what is received after sign in: id_token, access_token, or code
 const poolData = {
   UserPoolId: userPoolId,
   ClientId: clientId
@@ -25,7 +25,7 @@ const accessToken = hashParams.get('access_token')
 
 const queryParams = new URLSearchParams(window.location.search)
 const code = queryParams.get('code')
-console.log('code: ' + code);
+console.log('code: ' + code)
 
 // Set up:
 let bearerValue
