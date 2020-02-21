@@ -23,8 +23,6 @@ const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
 const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
 const poolData = { UserPoolId: userPoolId, ClientId: clientId }
 
-let authorizationCode
-
 // const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
 
 /**
@@ -56,8 +54,27 @@ exports.readAuthorizationCode = () => {
     bearerValue = code
   }
   // const authorization = 'Bearer ' + bearerValue
-  authorizationCode = bearerValue
-  console.log('authorizationCode: ' + authorizationCode)
+  const authorizationCode = bearerValue
+  // console.log('authorizationCode: ' + authorizationCode)
+  return authorizationCode
+}
+
+/**
+ * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
+ * @param {same} code The authorization code returned by Cognito after sign in
+ * @todo Finish implementing this function
+ */
+exports.exchangeCodeForTokens = async (authorizationCode) => {
+  const data = {
+    grant_type: 'authorization_code',
+    client_id: clientId,
+    redirect_uri: urlSignedIn,
+    code: authorizationCode
+  }
+  const body = encodeDataForAuthToken(data)
+  // console.log('body:' + body)
+  // return body
+  return postToAuthToken(urlAuthToken, body)
 }
 
 /**
@@ -65,47 +82,41 @@ exports.readAuthorizationCode = () => {
  * @param {object} data One level deep. E.g. {a:b, c:d}, not {a:{b:c, d:e}, f:g}
  */
 function encodeDataForAuthToken (data) {
-  Object.keys(data)
+  const body = Object.keys(data)
     .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(data[key]))
     .join('&')
+  // console.log('body:' + body)
+  return body
 }
 
 /**
  * POST to the Cognito Token endpoint to get tokens
- * @param {string} url The url for the Cognito Token endpoint
+ * @param {string} url The url for the Cognito TOKEN endpoint
  * @param {string} data Data required by the endpoint
+ * @todo This has worked before but now it has promise issues
  */
 async function postToAuthToken (url = '', body = '') {
-  const response = await fetch(url, {
-    method: 'POST', // *GET, POST, PUT, DELETE, etc.
-    // mode: 'cors', // no-cors, *cors, same-origin
-    // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-    // credentials: 'same-origin', // include, *same-origin, omit
-    headers: {
-      // 'Content-Type': 'application/json'
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    // redirect: 'follow', // manual, *follow, error
-    // referrerPolicy: 'no-referrer', // no-referrer, *client
-    body: body // body data type must match "Content-Type" header
-  })
-  return response.json() // parses JSON response into native JavaScript objects
-}
-
-/**
- * After sign in, exchange the code for tokens
- * @param {same} code The authorization code returned by Cognito after sign in
- * @todo Finish implementing this function
- */
-exports.exchangeCodeForToken = (code) => {
-  const data = {
-    grant_type: 'authorization_code',
-    client_id: clientId,
-    redirect_uri: urlSignedIn,
-    code: code
+  let tokens
+  try {
+    const response = await fetch(url, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      // mode: 'cors', // no-cors, *cors, same-origin
+      // cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+      // credentials: 'same-origin', // include, *same-origin, omit
+      headers: {
+        // 'Content-Type': 'application/json'
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      // redirect: 'follow', // manual, *follow, error
+      // referrerPolicy: 'no-referrer', // no-referrer, *client
+      body: body // body data type must match "Content-Type" header
+    })
+    tokens = await response.json() // parses JSON response into native JavaScript objects
+  } catch (err) {
+    console.log('err:' + err)
+    tokens = err
   }
-  const body = encodeDataForAuthToken(data)
-  return postToAuthToken(urlAuthToken, body)
+  return tokens
 }
 
 /**
