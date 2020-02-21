@@ -28,6 +28,7 @@ const poolData = { UserPoolId: userPoolId, ClientId: clientId }
 /**
  * This method assumes the user just signed in
  * via authorization code grant & gots a code in the querystring.
+ * @returns {string} The authorization code.
  */
 exports.readAuthorizationCode = () => {
   const bearerType = 'code' // set to what is received after sign in: id_token, access_token, or code
@@ -61,8 +62,8 @@ exports.readAuthorizationCode = () => {
 
 /**
  * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
- * @param {same} code The authorization code returned by Cognito after sign in
- * @todo Finish implementing this function
+ * @param {string} code The authorization code returned by Cognito after sign in
+ * @returns {object} An ojbect with id_token, access_token, refresh_token, expires_in, token_type
  */
 exports.exchangeCodeForTokens = async (authorizationCode) => {
   const data = {
@@ -80,6 +81,7 @@ exports.exchangeCodeForTokens = async (authorizationCode) => {
 /**
  * Make URI encoded query string out of a simple object.
  * @param {object} data One level deep. E.g. {a:b, c:d}, not {a:{b:c, d:e}, f:g}
+ * @returns {string} A URI encoded query string. E.g. a%3Db%26c%3Dd, i.e. a=b&c=d
  */
 function encodeDataForAuthToken (data) {
   const body = Object.keys(data)
@@ -93,7 +95,7 @@ function encodeDataForAuthToken (data) {
  * POST to the Cognito Token endpoint to get tokens
  * @param {string} url The url for the Cognito TOKEN endpoint
  * @param {string} data Data required by the endpoint
- * @todo This has worked before but now it has promise issues
+ * @returns {object} An ojbect with id_token, access_token, refresh_token, expires_in, token_type
  */
 async function postToAuthToken (url = '', body = '') {
   let tokens
