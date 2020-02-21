@@ -7,21 +7,21 @@ global.fetch = require('node-fetch')
  * Process:
  * - 1. User signs in & gets a code in the querystring.
  * - 2. Exchange code for tokens by POSTing the code to the TOKEN endpoint.
- * - 3. Before each server call renew the tokens.
+ * - 3. Before each server call refresh the tokens.
  * @module my/csession
 */
 
-/** HARD CODED properties */
-const poolRegion = exports.poolRegion = 'us-east-1'
-const userPoolId = exports.userPoolId = 'us-east-1_tKSjw3xXu'
+// HARD CODED properties
 /** Cognito app client ID */
 const clientId = exports.clientId = '1aosnlgh8roam75comsp77fhd1'
+const poolRegion = exports.poolRegion = 'us-east-1'
+const poolId = exports.poolId = 'us-east-1_tKSjw3xXu'
+const poolData = { UserPoolId: poolId, ClientId: clientId }
 const urlSignedIn = exports.urlSignedIn = 'https://imalogit.com/app/index.html'
 const urlSignedOut = exports.urlSignedOut = 'https://imalogit.com/app/signOut.html'
 const urlAuthToken = exports.urlAuthToken = 'https://auth.imalogit.com/oauth2/token'
 const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
 const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
-const poolData = { UserPoolId: userPoolId, ClientId: clientId }
 
 // const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
 
@@ -95,7 +95,7 @@ function encodeDataForAuthToken (data) {
  * POST to the Cognito Token endpoint to get tokens
  * @param {string} url The url for the Cognito TOKEN endpoint
  * @param {string} data Data required by the endpoint
- * @returns {object} An ojbect with id_token, access_token, refresh_token, expires_in, token_type
+ * @returns {object} An obect with id_token, access_token, refresh_token, expires_in, token_type
  */
 async function postToAuthToken (url = '', body = '') {
   let tokens
@@ -122,24 +122,24 @@ async function postToAuthToken (url = '', body = '') {
 }
 
 /**
- * Before each server call, renew the tokens. Assumes the user either:
+ * Before each server call, refresh the tokens. Assumes the user either:
  * - signed in & exchanged the code for tokens, or
  * - did a previous call to this function & now has a refresh token.
- * @todo In progress
+ * @param {string} A refresh_token JWT
+ * @returns {object} An obect with id_token, access_token, refresh_token
+ * @todo In progress. getUserData() validateJWT(). I
  */
-function renew () {
-  const RefreshToken = new AmazonCognitoIdentity.CognitoRefreshToken({ RefreshToken: 'your_refresh_token_from_a_previous_login' })
-
-  const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
-
+exports.refreshTokens = (refreshTokenRaw) => {
+  const refreshToken = new AmazonCognitoIdentity.CognitoRefreshToken({ refreshTokenRaw })
+  const pool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
   const userData = {
     Username: 'sample@gmail.com',
-    Pool: userPool
+    Pool: pool
   }
 
   const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData)
 
-  cognitoUser.refreshSession(RefreshToken, (err, session) => {
+  cognitoUser.refreshSession(refreshToken, (err, session) => {
     if (err) {
       console.log(err)
     } else {
