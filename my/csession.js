@@ -32,7 +32,7 @@ let authorizationCode
  * via authorization code grant & gots a code in the querystring.
  */
 exports.readAuthorizationCode = () => {
-  const bearerType = 'id_token' // set to what is received after sign in: id_token, access_token, or code
+  const bearerType = 'code' // set to what is received after sign in: id_token, access_token, or code
 
   // The user should have signed in with Cognito.
   const hashParams = new URLSearchParams(window.location.hash.substr(1))
