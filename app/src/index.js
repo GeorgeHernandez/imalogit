@@ -7,4 +7,5 @@
   // console.log('JSON.stringify(tokens): ' + JSON.stringify(tokens))
   const answer = await csession.refreshTokens(tokens)
   console.log('JSON.stringify(answer): ' + JSON.stringify(answer))
+  document.getElementById('asyncAnswer').innerHTML = '<mark>' + answer.userName + ' (' + answer.userEmail + ')</mark> has signed in.'
 })())

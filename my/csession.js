@@ -29,8 +29,6 @@ const urlAuthToken = exports.urlAuthToken = 'https://auth.imalogit.com/oauth2/to
 // const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
 // const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
 
-// const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
-
 /**
  * This method assumes the user just signed in
  * via authorization code grant & gots a code in the querystring.
@@ -145,13 +143,22 @@ exports.refreshTokens = async (tokens) => {
   const pool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
 
   const tokenMeta = await validateToken(tokens.id_token)
-  const username = tokenMeta.goodSignature['cognito:username']
+  // console.log('JSON.stringify(tokenMeta): ' + JSON.stringify(tokenMeta))
+  const userEmail = tokenMeta.goodSignature.email
+  // console.log('userEmail: ' + userEmail)
+  const userName = tokenMeta.goodSignature['cognito:username']
+  // console.log('userName: ' + userName)
+  const userSub = tokenMeta.goodSignature.sub
+  // console.log('userSub: ' + userSub)
   const userData = {
-    Username: username,
+    Username: userName,
     Pool: pool
   }
 
   const answer = await refreshSession(userData, refreshToken)
+  answer.userEmail = userEmail
+  answer.userName = userName
+  answer.userSub = userSub
   return answer
 }
 
