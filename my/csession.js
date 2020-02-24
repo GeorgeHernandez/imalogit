@@ -1,5 +1,8 @@
 /* global fetch */
 const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
+const base64url = require('base64url')
+const jtp = require('jwk-to-pem')
+const jwt = require('jsonwebtoken')
 global.fetch = require('node-fetch')
 
 /**
@@ -9,19 +12,22 @@ global.fetch = require('node-fetch')
  * - 2. Exchange code for tokens by POSTing the code to the TOKEN endpoint.
  * - 3. Before each server call refresh the tokens.
  * @module my/csession
-*/
+ */
 
 // HARD CODED properties
 /** Cognito app client ID */
 const clientId = exports.clientId = '1aosnlgh8roam75comsp77fhd1'
 const poolRegion = exports.poolRegion = 'us-east-1'
 const poolId = exports.poolId = 'us-east-1_tKSjw3xXu'
-const poolData = { UserPoolId: poolId, ClientId: clientId }
+const poolData = {
+  UserPoolId: poolId,
+  ClientId: clientId
+}
 const urlSignedIn = exports.urlSignedIn = 'https://imalogit.com/app/index.html'
-const urlSignedOut = exports.urlSignedOut = 'https://imalogit.com/app/signOut.html'
+// const urlSignedOut = exports.urlSignedOut = 'https://imalogit.com/app/signOut.html'
 const urlAuthToken = exports.urlAuthToken = 'https://auth.imalogit.com/oauth2/token'
-const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
-const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
+// const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
+// const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
 
 // const userPool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
 
@@ -63,7 +69,7 @@ exports.readAuthorizationCode = () => {
 /**
  * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
  * @param {string} code The authorization code returned by Cognito after sign in
- * @returns {object} An ojbect with id_token, access_token, refresh_token, expires_in, token_type
+ * @returns {object} An object with id_token, access_token, refresh_token, expires_in, token_type
  */
 exports.exchangeCodeForTokens = async (authorizationCode) => {
   const data = {
@@ -115,7 +121,7 @@ async function postToAuthToken (url = '', body = '') {
     })
     tokens = await response.json() // parses JSON response into native JavaScript objects
   } catch (err) {
-    console.log('err:' + err)
+    // console.log('err:' + err)
     tokens = err
   }
   return tokens
@@ -129,28 +135,146 @@ async function postToAuthToken (url = '', body = '') {
  * @returns {object} An obect with id_token, access_token, refresh_token
  * @todo In progress. getUserData() validateJWT(). I
  */
-exports.refreshTokens = (refreshTokenRaw) => {
-  const refreshToken = new AmazonCognitoIdentity.CognitoRefreshToken({ refreshTokenRaw })
+exports.refreshTokens = async (tokens) => {
+  // console.log('JSON.stringify(tokens):' + JSON.stringify(tokens))
+  // console.log('JSON.stringify(tokens.refresh_token):' + JSON.stringify(tokens.refresh_token))
+  const refreshToken = new AmazonCognitoIdentity.CognitoRefreshToken({
+    RefreshToken: tokens.refresh_token
+  })
+  // console.log('JSON.stringify(refreshToken):' + JSON.stringify(refreshToken))
   const pool = new AmazonCognitoIdentity.CognitoUserPool(poolData)
+
+  const tokenMeta = await validateToken(tokens.id_token)
+  const username = tokenMeta.goodSignature['cognito:username']
   const userData = {
-    Username: 'sample@gmail.com',
+    Username: username,
     Pool: pool
   }
 
-  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData)
+  const answer = await refreshSession(userData, refreshToken)
+  return answer
+}
 
-  cognitoUser.refreshSession(refreshToken, (err, session) => {
-    if (err) {
-      console.log(err)
-    } else {
-      const retObj = {
-        access_token: session.accessToken.jwtToken,
-        id_token: session.idToken.jwtToken,
-        refresh_token: session.refreshToken.token
+function refreshSession (userData, refreshToken) {
+  const cognitoUser = new AmazonCognitoIdentity.CognitoUser(userData)
+  return new Promise((resolve) => {
+    cognitoUser.refreshSession(refreshToken, (err, session) => {
+      if (err) {
+        // console.log(err)
+        return err
+      } else {
+        const retObj = {
+          access_token: session.accessToken.jwtToken,
+          id_token: session.idToken.jwtToken,
+          refresh_token: session.refreshToken.token
+        }
+        // console.log(retObj)
+        resolve(retObj)
       }
-      console.log(retObj)
-    }
+    })
   })
+}
+
+async function validateToken (idToken) {
+  // Verifying a JSON Web Token (https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html)
+  // Each step must be true before proceeding and all steps must be true.
+
+  const body = {}
+  try {
+    // Step 1: Confirm the Structure of the JWT
+    const JWS_REGEX = /^[A-z0-9\-_=]+?\.[A-z0-9\-_=]+?\.[A-z0-9\-_=]+?$/ // E.g. aB1-_=.cD2-_=.eF3-_=
+    if (JWS_REGEX.test(idToken)) {
+      body.goodStructure = true
+    } else {
+      body.goodStructure = false
+      body.isValid = false
+      throw new Error('bad structure')
+    }
+
+    // Step 2: Validate the JWT Signature
+    // Step 2.1: Decode the local Key ID (kid) from the token
+    const headerString = base64url.decode(idToken.split('.')[0])
+    const header = JSON.parse(headerString)
+    const kid = header.kid
+    body.kid = kid
+
+    // Step 2.2: Compare the local kid to the pulic kid.
+    const userPoolUrl = `https://cognito-idp.${poolRegion}.amazonaws.com/${poolId}`
+    const keysUrl = userPoolUrl + '/.well-known/jwks.json'
+    const publicJwksResponse = await fetch(keysUrl)
+    const publicJwks = await publicJwksResponse.json()
+    body.publicJwks = publicJwks
+    if (kid === publicJwks.keys[0].kid) {
+      body.goodKid = true
+      body.keyIndex = 0
+    } else if (kid === publicJwks.keys[1].kid) {
+      body.goodKid = true
+      body.keyIndex = 1
+    } else {
+      body.goodKid = false
+      body.isValid = false
+      throw new Error('bad key i.')
+    }
+
+    // Step 2.3: Use key to verify the signature.
+    const pem = jtp(publicJwks.keys[body.keyIndex])
+    body.pem = pem
+    const claims = jwt.verify(idToken, pem)
+    if (claims) {
+      body.goodSignature = claims
+    } else {
+      body.goodSignature = {}
+      body.isValid = false
+      throw new Error('bad signature')
+    }
+
+    // Step 3: Verify the Claims
+    // Step 3.1: Verify that the token is not expired.
+    const expirationTime = claims.exp // seconds since 1970-01-01 0:0:0Z
+    const currentTime = Math.floor(Date.now() / 1000)
+    if (currentTime < expirationTime) {
+      body.goodTime = true
+    } else {
+      body.goodTime = false
+      body.isValid = false
+      throw new Error('token expired')
+    }
+
+    // Step 3.2: Verify that the aud claim matches the app client ID in the Cognito user pool.
+    const appClientId = process.env.COGNITO_CLIENT_ID
+    if (claims.aud === appClientId) {
+      body.goodAppId = true
+    } else {
+      body.goodAppId = false
+      body.isValid = false
+      throw new Error('bad app id')
+    }
+
+    // Step 3.3: Verify that the iss claim matches the Cognito user pool.
+    if (claims.iss === userPoolUrl) {
+      body.goodIssuer = true
+    } else {
+      body.goodIssuer = false
+      body.isValid = false
+      throw new Error('bad issuer')
+    }
+
+    // Step 3.4: Verify the token_use claim.
+    // In our case it is `id` instead of `access`
+    body.goodUse = (claims.token_use === 'id')
+    if (claims.token_use === 'id') {
+      body.goodUse = true
+    } else {
+      body.goodUse = false
+      body.isValid = false
+      throw new Error('bad token use')
+    }
+  } catch (e) {
+    body.error = e
+    body.isValid = false
+  }
+
+  return body
 }
 
 /**
@@ -160,7 +284,7 @@ exports.refreshTokens = (refreshTokenRaw) => {
  * @param {string} authorization
  * @todo implement in another module?
  */
-async function heyAPIGateway (api, origin, authorization) {
+exports.heyAPIGateway = async (api, origin, authorization) => {
   try {
     const response = await fetch(api, {
       headers: {
@@ -181,4 +305,4 @@ async function heyAPIGateway (api, origin, authorization) {
     console.log('Error: ', e)
     document.getElementById('asyncAnswer').innerHTML = 'Sorry, there was an error.'
   }
-};
+}

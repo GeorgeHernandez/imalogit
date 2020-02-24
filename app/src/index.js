@@ -4,5 +4,7 @@
   // console.log('authorizationCode: ' + authorizationCode)
   // const tokens = csession.exchangeCodeForTokens(authorizationCode).then(r => r).catch(e => console.log('e:' + e))
   const tokens = await csession.exchangeCodeForTokens(authorizationCode)
-  console.log('JSON.stringify(tokens): ' + JSON.stringify(tokens))
+  // console.log('JSON.stringify(tokens): ' + JSON.stringify(tokens))
+  const answer = await csession.refreshTokens(tokens)
+  console.log('JSON.stringify(answer): ' + JSON.stringify(answer))
 })())
