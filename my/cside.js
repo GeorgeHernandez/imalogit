@@ -30,7 +30,8 @@ const urlAuthToken = exports.urlAuthToken = 'https://auth.imalogit.com/oauth2/to
 // const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
 
 /**
- * This method assumes the user just signed in  via authorization code grant & got a code in the querystring.
+ * This method assumes the user just signed in via authorization code grant &
+ * got a code in the querystring.
  * @returns {string} The authorization code.
  */
 exports.readAuthorizationCode = () => {
@@ -104,7 +105,8 @@ function encodeForURI (data) {
  * Usually id & access tokens are good for 1 hour, but refresh tokens are good for 30 days.
  * @param {string} url The url for the Cognito TOKEN endpoint
  * @param {string} data Data required by the endpoint
- * @returns {object} An obect with id_token, access_token, expires_in, token_type; refresh_token also if grant type was authorization_code.
+ * @returns {object} An obect with id_token, access_token, expires_in, token_type
+ * Also has refresh_token if grant type was authorization_code.
  */
 async function postEncodedToEndpoint (url = '', body = '') {
   let answer
@@ -156,11 +158,11 @@ exports.exchangeRefreshToken = async (refreshToken) => {
 
 /**
  * Verify a JWT & return object with claims.
+ * https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
  * @param {string} idToken JWT for the id_token.
  * @returns {object} The key properties are claims & isValid. The other properties are for debugging.
  */
 async function validateToken (idToken) {
-  // Verifying a JSON Web Token (https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html)
   // Each step must be true before proceeding and all steps must be true.
 
   const body = {}

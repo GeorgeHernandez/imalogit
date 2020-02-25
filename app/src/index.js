@@ -17,5 +17,5 @@
   // console.log('JSON.stringify(responseToRefreshToken): ' + JSON.stringify(responseToRefreshToken))
   console.log('JSON.stringify(session): ' + JSON.stringify(session))
 
-  document.getElementById('asyncAnswer').innerHTML = '<mark>' + session.claims.name + ' (' + session.claims.email + ')</mark> has signed in.'
+  document.getElementById('asyncAnswer').innerHTML = '<mark>' + session.claims.name + ' (' + session.claims.eemail + ')</mark> has signed in.'
 })())
