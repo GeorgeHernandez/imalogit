@@ -1,11 +1,21 @@
 ((async () => {
-  const csession = require('../../my/csession')
-  const authorizationCode = csession.readAuthorizationCode()
+  const cside = require('../../my/cside')
+
+  const authorizationCode = cside.readAuthorizationCode()
   // console.log('authorizationCode: ' + authorizationCode)
-  // const tokens = csession.exchangeCodeForTokens(authorizationCode).then(r => r).catch(e => console.log('e:' + e))
-  const tokens = await csession.exchangeCodeForTokens(authorizationCode)
-  // console.log('JSON.stringify(tokens): ' + JSON.stringify(tokens))
-  const answer = await csession.refreshTokens(tokens)
-  console.log('JSON.stringify(answer): ' + JSON.stringify(answer))
-  document.getElementById('asyncAnswer').innerHTML = '<mark>' + answer.userName + ' (' + answer.userEmail + ')</mark> has signed in.'
+
+  const responseToCode = await cside.exchangeCode(authorizationCode)
+  // console.log('JSON.stringify(responseToCode): ' + JSON.stringify(responseToCode))
+  const session = {}
+  session.claims = responseToCode.claims
+  session.claims.name = responseToCode.claims['cognito:username']
+  session.tokens0 = responseToCode.tokens
+  // console.log('JSON.stringify(session): ' + JSON.stringify(session))
+
+  const responseToRefreshToken = await cside.exchangeRefreshToken(session.tokens0.refresh_token)
+  session.tokens = responseToRefreshToken.tokens
+  // console.log('JSON.stringify(responseToRefreshToken): ' + JSON.stringify(responseToRefreshToken))
+  console.log('JSON.stringify(session): ' + JSON.stringify(session))
+
+  document.getElementById('asyncAnswer').innerHTML = '<mark>' + session.claims.name + ' (' + session.claims.email + ')</mark> has signed in.'
 })())
