@@ -4,32 +4,19 @@ const base64url = require('base64url')
 const jtp = require('jwk-to-pem')
 const jwt = require('jsonwebtoken')
 global.fetch = require('node-fetch')
+const cfg = require('./config')
 
 /**
  * cside module. Client-side code for dealing with session, API Gateway calls, etc.
  * Process:
- * - 0. User signs in & gets a code in the querystring.
- * Cognito puts the accessToken, idToken, refreshToken, & user name in localStorage.
- * - 1. Each API Gateway call:
+ * -1. User signs in & gets a code in the querystring.
+ * -2. Send code to the TOKEN endpoint to get tokens & user meta.
+ * -3. Put the tokens & user name in localStorage.
+ * -4. With each API Gateway call:
  *     - Send refresh token to the TOKEN endpoint to get fresh tokens.
  *     - Use the fresh tokens.
  * @module my/csession
  */
-
-// HARD CODED properties
-/** Cognito app client ID */
-const clientId = exports.clientId = '1aosnlgh8roam75comsp77fhd1'
-const poolRegion = exports.poolRegion = 'us-east-1'
-const poolId = exports.poolId = 'us-east-1_tKSjw3xXu'
-// const poolData = {
-//   UserPoolId: poolId,
-//   ClientId: clientId
-// }
-// const urlSignedIn = exports.urlSignedIn = 'https://imalogit.com/app/index.html'
-// const urlSignedOut = exports.urlSignedOut = 'https://imalogit.com/app/signOut.html'
-const urlAuthToken = exports.urlAuthToken = 'https://auth.imalogit.com/oauth2/token'
-// const urlApi = exports.urlApi = 'https://api.imalogit.com/main/dev/'
-// const urlOrigin = exports.urlOrigin = 'https://imalogit.com'
 
 /**
  * Make URI encoded query string out of a simple object.
@@ -75,7 +62,7 @@ async function postEncodedToEndpoint (url = '', body = '') {
 /**
  * Verify a JWT & return object with claims.
  * https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
- * @param {string} idToken JWT for the id_token.
+ * @param {string} idToken JWT for the id_token
  * @returns {object} The key properties are claims & isValid. The other properties are for debugging.
  */
 async function validateToken (idToken) {
@@ -98,7 +85,7 @@ async function validateToken (idToken) {
   body.kid = kid
 
   // Step 2.2: Compare the local kid to the pulic kid.
-  const userPoolUrl = `https://cognito-idp.${poolRegion}.amazonaws.com/${poolId}`
+  const userPoolUrl = `https://cognito-idp.${cfg.poolRegion}.amazonaws.com/${cfg.poolId}`
   const keysUrl = userPoolUrl + '/.well-known/jwks.json'
   const publicJwksResponse = await fetch(keysUrl)
   const publicJwks = await publicJwksResponse.json()
@@ -134,7 +121,7 @@ async function validateToken (idToken) {
   }
 
   // Step 3.2: Verify that the aud claim matches the app client ID in the Cognito user pool.
-  if (claims.aud === clientId) {
+  if (claims.aud === cfg.clientId) {
     body.goodAppId = true
   } else {
     throw new Error('bad app id')
@@ -159,22 +146,33 @@ async function validateToken (idToken) {
 }
 
 /**
- * Exchange the code for tokens by POSTing the refresh token to the TOKEN endpoint.
- * Usually id & access tokens are good for 1 hour, but refresh tokens are good for 30 days.
- * Tokens should be refreshed before each call to the API Gateway.
- * @param {string} refreshToken
- * @returns {object} An object with id_token, access_token, refresh_token, expires_in, token_type
+ * This method assumes the user just signed in via authorization code grant &
+ * got a code in the querystring.
+ * @returns {string} The authorization code.
  */
-exports.exchangeRefreshToken = async (refreshToken) => {
+exports.readAuthorizationCode = () => {
+  const queryParams = new URLSearchParams(window.location.search)
+  const code = queryParams.get('code')
+  // console.log('code: ' + code)
+  return code
+}
+
+/**
+ * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
+ * @param {string} authorizationCode The authorization code returned by Cognito after sign in
+ * @returns {object} An object with properties for tokens & claims.
+ */
+exports.exchangeCode = async (authorizationCode) => {
   const data = {
-    grant_type: 'refresh_token',
-    client_id: clientId,
-    refresh_token: refreshToken
+    grant_type: 'authorization_code',
+    client_id: cfg.clientId,
+    redirect_uri: cfg.urlSignedIn,
+    code: authorizationCode
   }
   const body = encodeForURI(data)
   // console.log('body:' + body)
   // return body
-  const tokens = await postEncodedToEndpoint(urlAuthToken, body)
+  const tokens = await postEncodedToEndpoint(cfg.urlAuthToken, body)
   const idTokenContent = await validateToken(tokens.id_token)
   const response = {}
   response.tokens = tokens
@@ -183,31 +181,71 @@ exports.exchangeRefreshToken = async (refreshToken) => {
 }
 
 /**
+ * Exchange the code for tokens by POSTing the refresh token to the TOKEN endpoint.
+ * Usually id & access tokens are good for 1 hour, but refresh tokens are good for 30 days.
+ * Tokens should be refreshed before each call to the API Gateway.
+ * @param {string} refreshToken From Cognito. Usually good for 30 days.
+ * @returns {object} An object with .tokens + .claims (for convenience).
+ */
+async function exchangeRefreshToken (refreshToken) {
+  const data = {
+    grant_type: 'refresh_token',
+    client_id: cfg.clientId,
+    refresh_token: refreshToken
+  }
+  const body = encodeForURI(data)
+  const tokens = await postEncodedToEndpoint(cfg.urlAuthToken, body)
+  const idTokenContent = await validateToken(tokens.id_token)
+  const response = {}
+  response.tokens = tokens
+  response.claims = idTokenContent.claims
+  return response
+}
+
+/**
+ * Scrap method for DEV ONLY.
+ * @param {string} x Use as needed
+ */
+exports.foo = async (x = '') => {
+  return exchangeRefreshToken(x)
+}
+
+/**
  * NOT related to sessions. I'm just parking this here.
  * @param {string} api
  * @param {string} origin
  * @param {string} authorization
  * @todo implement in another module?
+ * @returns
+ *   Probably JSON data.
+ *   Side-effect: Updates localStorage for tokens.
  */
-exports.heyAPIGateway = async (api, origin, authorization) => {
-  try {
-    const response = await fetch(api, {
-      headers: {
-        Origin: origin,
-        Authorization: authorization
-      },
-      method: 'GET'
-    })
-
-    const data = await response.json()
-    console.log('data: ', data)
-    if (data.session.isValid) {
-      document.getElementById('asyncAnswer').innerHTML = '<mark>' + data.session.claims.email + '</mark> has signed in.'
-    } else {
-      throw JSON.stringify(data)
-    }
-  } catch (e) {
-    console.log('Error: ', e)
-    document.getElementById('asyncAnswer').innerHTML = 'Sorry, there was an error.'
+exports.heyAPIGateway = async (resource) => {
+  const localKeyRoot = 'CognitoIdentityServiceProvider.' + cfg.clientId
+  const userName = window.localStorage.getItem(localKeyRoot + '.LastAuthUser')
+  let refreshToken
+  if (userName) {
+    refreshToken = window.localStorage.getItem(localKeyRoot + '.' + userName + '.refreshToken')
+    if (!refreshToken) throw new Error('bad refresh token')
+  } else {
+    throw new Error('bad user name')
   }
+  const freshData = await exchangeRefreshToken(refreshToken)
+  refreshToken = freshData.tokens.refresh_token
+  console.log('refreshToken: ' + refreshToken)
+  const idToken = freshData.tokens.id_token
+  console.log('idToken: ' + idToken)
+  window.localStorage.setItem(localKeyRoot + '.' + userName + '.refreshToken', refreshToken)
+  window.localStorage.setItem(localKeyRoot + '.' + userName + '.idToken', idToken)
+  console.log('urlApi + resource: ' + cfg.urlApi + resource)
+  const response = await fetch(cfg.urlApi + resource, {
+    headers: {
+      Origin: cfg.urlOrigin,
+      Authorization: 'Bearer ' + idToken
+    },
+    method: 'GET'
+  })
+  const data = await response.json()
+  // console.log('data: ', data)
+  return data
 }
