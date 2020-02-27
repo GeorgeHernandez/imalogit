@@ -2,10 +2,11 @@
   const cside = require('../../my/cside')
 
   const authorizationCode = cside.readAuthorizationCode()
-  console.log('authorizationCode: ' + authorizationCode)
+  // console.log('authorizationCode: ' + authorizationCode)
 
-  // const responseToCode = await cside.exchangeCode(authorizationCode)
-  // // console.log('JSON.stringify(responseToCode): ' + JSON.stringify(responseToCode))
+  const responseToCode = await cside.exchangeCode(authorizationCode)
+  console.log('responseToCode: ' + JSON.stringify(responseToCode))
+
   // const session = {}
   // session.claims = responseToCode.claims
   // session.claims.name = responseToCode.claims['cognito:username']
