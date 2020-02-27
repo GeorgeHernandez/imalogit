@@ -1,14 +1,14 @@
 /* global fetch */
 /**
  * cside module. Client-side code for dealing with session, API Gateway calls, etc.
- * Process:
- * -1. User signs in & gets a code in the querystring.
- * -2. Send code to the TOKEN endpoint to get tokens & user meta.
- * -3. Put the tokens & user name in localStorage.
- * -4. With each API Gateway call:
- *     - Send refresh token to the TOKEN endpoint to get fresh tokens.
- *     - Use the fresh tokens.
- * @module my/csession
+ * Use Case 1: Just signed in.
+ * - User signs in & gets a code in the querystring.
+ * - Send code to the TOKEN endpoint to get tokens & user meta.
+ * - Put the tokens & user name in localStorage.
+ * Use Case 2: With each API Gateway call.
+ *  - Send refresh token to the TOKEN endpoint to get fresh tokens.
+ *  - Use the fresh tokens.
+ * @module my/cside
  */
 // const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
 const base64url = require('base64url')
@@ -148,6 +148,7 @@ async function validateToken (idToken) {
  * This method assumes the user just signed in via authorization code grant &
  * got a code in the querystring.
  * @returns {string} The authorization code.
+ * @alias module:my/cside.readAuthorizationCode
  */
 var readAuthorizationCode = exports.readAuthorizationCode = () => {
   const queryParams = new URLSearchParams(window.location.search)
@@ -160,6 +161,7 @@ var readAuthorizationCode = exports.readAuthorizationCode = () => {
  * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
  * @param {string} authorizationCode The authorization code returned by Cognito after sign in
  * @returns {object} An object with properties for tokens & claims.
+ * @alias module:my/cside.exchangeCode
  */
 var exchangeCode = exports.exchangeCode = async (authorizationCode) => {
   const data = {
@@ -179,7 +181,12 @@ var exchangeCode = exports.exchangeCode = async (authorizationCode) => {
   return session
 }
 
-exports.getRefreshToken = async () => {
+/**
+ * Get refresh token from localStorage or initialize localStorage then get it.
+ * Side-effects: Updates localStorage with session info.
+ * @returns {string} refreshToken
+ */
+var getRefreshToken = exports.getRefreshToken = async () => {
   let refreshToken = window.localStorage.getItem('refreshToken')
   if (!refreshToken) {
     const authorizationCode = readAuthorizationCode()
@@ -215,24 +222,15 @@ async function exchangeRefreshToken (refreshToken) {
 }
 
 /**
- * Scrap method for DEV ONLY.
- * @param {string} x Use as needed
- */
-exports.foo = async (x = '') => {
-  return exchangeRefreshToken(x)
-}
-
-/**
- * NOT related to sessions. I'm just parking this here.
- * @param {string} api
- * @param {string} origin
- * @param {string} authorization
- * @todo implement in another module?
+ * Prepping for calls to the API Gateway.
+ * @param {string} resource Default is ''. E.g. 'entry', 'log', 'user', etc
+ * @todo building
  * @returns
  *   Probably JSON data.
  *   Side-effect: Updates localStorage for tokens.
+ * @alias module:my/cside.heyAPIGateway
  */
-exports.heyAPIGateway = async (resource) => {
+var heyAPIGateway = exports.heyAPIGateway = async (resource = '') => {
   const localKeyRoot = 'CognitoIdentityServiceProvider.' + cfg.clientId
   const userName = window.localStorage.getItem(localKeyRoot + '.LastAuthUser')
   let refreshToken
