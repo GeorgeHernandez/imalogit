@@ -1,11 +1,4 @@
 /* global fetch */
-// const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
-const base64url = require('base64url')
-const jtp = require('jwk-to-pem')
-const jwt = require('jsonwebtoken')
-global.fetch = require('node-fetch')
-const cfg = require('./config')
-
 /**
  * cside module. Client-side code for dealing with session, API Gateway calls, etc.
  * Process:
@@ -17,6 +10,12 @@ const cfg = require('./config')
  *     - Use the fresh tokens.
  * @module my/csession
  */
+// const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
+const base64url = require('base64url')
+const jtp = require('jwk-to-pem')
+const jwt = require('jsonwebtoken')
+global.fetch = require('node-fetch')
+const cfg = require('./config')
 
 /**
  * Make URI encoded query string out of a simple object.
@@ -150,7 +149,7 @@ async function validateToken (idToken) {
  * got a code in the querystring.
  * @returns {string} The authorization code.
  */
-exports.readAuthorizationCode = () => {
+var readAuthorizationCode = exports.readAuthorizationCode = () => {
   const queryParams = new URLSearchParams(window.location.search)
   const code = queryParams.get('code')
   // console.log('code: ' + code)
@@ -162,7 +161,7 @@ exports.readAuthorizationCode = () => {
  * @param {string} authorizationCode The authorization code returned by Cognito after sign in
  * @returns {object} An object with properties for tokens & claims.
  */
-exports.exchangeCode = async (authorizationCode) => {
+var exchangeCode = exports.exchangeCode = async (authorizationCode) => {
   const data = {
     grant_type: 'authorization_code',
     client_id: cfg.clientId,
@@ -174,10 +173,23 @@ exports.exchangeCode = async (authorizationCode) => {
   // return body
   const tokens = await postEncodedToEndpoint(cfg.urlAuthToken, body)
   const idTokenContent = await validateToken(tokens.id_token)
-  const response = {}
-  response.tokens = tokens
-  response.claims = idTokenContent.claims
-  return response
+  const session = {}
+  session.tokens = tokens
+  session.claims = idTokenContent.claims
+  return session
+}
+
+exports.getRefreshToken = async () => {
+  let refreshToken = window.localStorage.getItem('refreshToken')
+  if (!refreshToken) {
+    const authorizationCode = readAuthorizationCode()
+    const session = await exchangeCode(authorizationCode)
+    refreshToken = session.tokens.refresh_token
+    window.localStorage.setItem('refreshToken', refreshToken)
+    window.localStorage.setItem('idToken', session.tokens.id_token)
+    window.localStorage.setItem('userName', session.claims['cognito:username'])
+  }
+  return refreshToken
 }
 
 /**
