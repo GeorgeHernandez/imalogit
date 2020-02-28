@@ -1,6 +1,6 @@
-/* global fetch */
+/* global fetch */ /* For linting */
 /**
- * cside module. Client-side code for dealing with session, API Gateway calls, etc.
+ * Client-side code for dealing with session, API Gateway calls, etc.
  * Use Case 1: Just signed in.
  * - User signs in & gets a code in the querystring.
  * - Send code to the TOKEN endpoint to get tokens & user meta.
@@ -10,12 +10,11 @@
  *  - Use the fresh tokens.
  * @module my/cside
  */
-// const AmazonCognitoIdentity = require('amazon-cognito-identity-js')
 const base64url = require('base64url')
 const jtp = require('jwk-to-pem')
 const jwt = require('jsonwebtoken')
-global.fetch = require('node-fetch')
 const cfg = require('./config')
+global.fetch = require('node-fetch')
 
 /**
  * Make URI encoded query string out of a simple object.
@@ -62,7 +61,7 @@ async function postEncodedToEndpoint (url = '', body = '') {
  * Verify a JWT & return object with claims.
  * https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
  * @param {string} idToken JWT for the id_token
- * @returns {object} The key properties are claims & isValid. The other properties are for debugging.
+ * @returns {object} The key property is .claims. The other properties are for debugging.
  */
 async function validateToken (idToken) {
   // Each step must be true before proceeding and all steps must be true.
@@ -145,80 +144,39 @@ async function validateToken (idToken) {
 }
 
 /**
- * This method assumes the user just signed in via authorization code grant &
- * got a code in the querystring.
- * @returns {string} The authorization code.
- * @alias module:my/cside.readAuthorizationCode
- */
-var readAuthorizationCode = exports.readAuthorizationCode = () => {
-  const queryParams = new URLSearchParams(window.location.search)
-  const code = queryParams.get('code')
-  // console.log('code: ' + code)
-  return code
-}
-
-/**
- * Exchange the code for tokens by POSTing the code to the TOKEN endpoint.
- * @param {string} authorizationCode The authorization code returned by Cognito after sign in
- * @returns {object} An object with properties for tokens & claims.
- * @alias module:my/cside.exchangeCode
- */
-var exchangeCode = exports.exchangeCode = async (authorizationCode) => {
-  const data = {
-    grant_type: 'authorization_code',
-    client_id: cfg.clientId,
-    redirect_uri: cfg.urlSignedIn,
-    code: authorizationCode
-  }
-  const body = encodeForURI(data)
-  // console.log('body:' + body)
-  // return body
-  const tokens = await postEncodedToEndpoint(cfg.urlAuthToken, body)
-  const idTokenContent = await validateToken(tokens.id_token)
-  const session = {}
-  session.tokens = tokens
-  session.claims = idTokenContent.claims
-  return session
-}
-
-/**
- * Get refresh token from localStorage or initialize localStorage then get it.
+ * If there is not a refresh token, then exchange the authorization code & set localStorage.
+ * If there is a refresh token, then exchange it & set localStorage.
  * Side-effects: Updates localStorage with session info.
- * @returns {string} refreshToken
  */
-var getRefreshToken = exports.getRefreshToken = async () => {
+var refreshSession = exports.refreshSession = async () => {
   let refreshToken = window.localStorage.getItem('refreshToken')
+  let data, encodedData, tokens, idTokenContent
   if (!refreshToken) {
-    const authorizationCode = readAuthorizationCode()
-    const session = await exchangeCode(authorizationCode)
-    refreshToken = session.tokens.refresh_token
-    window.localStorage.setItem('refreshToken', refreshToken)
-    window.localStorage.setItem('idToken', session.tokens.id_token)
-    window.localStorage.setItem('userName', session.claims['cognito:username'])
+    const queryParams = new URLSearchParams(window.location.search)
+    const authorizationCode = queryParams.get('code')
+    data = {
+      grant_type: 'authorization_code',
+      client_id: cfg.clientId,
+      redirect_uri: cfg.urlSignedIn,
+      code: authorizationCode
+    }
+    encodedData = encodeForURI(data)
+    tokens = await postEncodedToEndpoint(cfg.urlAuthToken, encodedData)
+    idTokenContent = await validateToken(tokens.id_token)
+    refreshToken = tokens.refresh_token
+  } else {
+    data = {
+      grant_type: 'refresh_token',
+      client_id: cfg.clientId,
+      refresh_token: refreshToken
+    }
+    encodedData = encodeForURI(data)
+    tokens = await postEncodedToEndpoint(cfg.urlAuthToken, encodedData)
+    idTokenContent = await validateToken(tokens.id_token)
   }
-  return refreshToken
-}
-
-/**
- * Exchange the code for tokens by POSTing the refresh token to the TOKEN endpoint.
- * Usually id & access tokens are good for 1 hour, but refresh tokens are good for 30 days.
- * Tokens should be refreshed before each call to the API Gateway.
- * @param {string} refreshToken From Cognito. Usually good for 30 days.
- * @returns {object} An object with .tokens + .claims (for convenience).
- */
-async function exchangeRefreshToken (refreshToken) {
-  const data = {
-    grant_type: 'refresh_token',
-    client_id: cfg.clientId,
-    refresh_token: refreshToken
-  }
-  const body = encodeForURI(data)
-  const tokens = await postEncodedToEndpoint(cfg.urlAuthToken, body)
-  const idTokenContent = await validateToken(tokens.id_token)
-  const response = {}
-  response.tokens = tokens
-  response.claims = idTokenContent.claims
-  return response
+  window.localStorage.setItem('refreshToken', refreshToken)
+  window.localStorage.setItem('idToken', tokens.id_token)
+  window.localStorage.setItem('userName', idTokenContent.claims['cognito:username'])
 }
 
 /**
@@ -230,28 +188,12 @@ async function exchangeRefreshToken (refreshToken) {
  *   Side-effect: Updates localStorage for tokens.
  * @alias module:my/cside.heyAPIGateway
  */
-var heyAPIGateway = exports.heyAPIGateway = async (resource = '') => {
-  const localKeyRoot = 'CognitoIdentityServiceProvider.' + cfg.clientId
-  const userName = window.localStorage.getItem(localKeyRoot + '.LastAuthUser')
-  let refreshToken
-  if (userName) {
-    refreshToken = window.localStorage.getItem(localKeyRoot + '.' + userName + '.refreshToken')
-    if (!refreshToken) throw new Error('bad refresh token')
-  } else {
-    throw new Error('bad user name')
-  }
-  const freshData = await exchangeRefreshToken(refreshToken)
-  refreshToken = freshData.tokens.refresh_token
-  console.log('refreshToken: ' + refreshToken)
-  const idToken = freshData.tokens.id_token
-  console.log('idToken: ' + idToken)
-  window.localStorage.setItem(localKeyRoot + '.' + userName + '.refreshToken', refreshToken)
-  window.localStorage.setItem(localKeyRoot + '.' + userName + '.idToken', idToken)
-  console.log('urlApi + resource: ' + cfg.urlApi + resource)
+exports.heyAPIGateway = async (resource = '') => {
+  await refreshSession()
   const response = await fetch(cfg.urlApi + resource, {
     headers: {
       Origin: cfg.urlOrigin,
-      Authorization: 'Bearer ' + idToken
+      Authorization: 'Bearer ' + window.localStorage.getItem('idToken')
     },
     method: 'GET'
   })
