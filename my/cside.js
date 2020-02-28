@@ -33,9 +33,9 @@ function encodeForURI (data) {
  * POST to the Cognito Token endpoint to get tokens.
  * Usually id & access tokens are good for 1 hour, but refresh tokens are good for 30 days.
  * @param {string} url The url for the Cognito TOKEN endpoint
- * @param {string} data Data required by the endpoint
+ * @param {string} body Data required by the endpoint
  * @returns {object} An obect with id_token, access_token, expires_in, token_type
- * Also has refresh_token if grant type was authorization_code.
+ * Also has refresh_token if body had grant type was authorization_code.
  */
 async function postEncodedToEndpoint (url = '', body = '') {
   const response = await fetch(url, {
@@ -146,7 +146,7 @@ async function validateToken (idToken) {
 /**
  * If there is not a refresh token, then exchange the authorization code & set localStorage.
  * If there is a refresh token, then exchange it & set localStorage.
- * Side-effects: Updates localStorage with session info.
+ * @returns Nothing. However it has side-effects of updates localStorage with session info.
  */
 var refreshSession = exports.refreshSession = async () => {
   let refreshToken = window.localStorage.getItem('refreshToken')
@@ -190,6 +190,8 @@ var refreshSession = exports.refreshSession = async () => {
  */
 exports.heyAPIGateway = async (resource = '') => {
   await refreshSession()
+  // console.log('cfg.urlApi: ' + cfg.urlApi)
+  // console.log('cfg.urlOrigin: ' + cfg.urlOrigin)
   const response = await fetch(cfg.urlApi + resource, {
     headers: {
       Origin: cfg.urlOrigin,
