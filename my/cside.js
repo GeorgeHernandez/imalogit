@@ -144,16 +144,19 @@ async function validateToken (idToken) {
 }
 
 /**
- * If there is not a refresh token, then exchange the authorization code & set localStorage.
+ * If there is neither a refresh token or aurhtorization code, then redirect.
+ * If there is no refresh token, then exchange the authorization code & set localStorage.
  * If there is a refresh token, then exchange it & set localStorage.
  * @returns Nothing. However it has side-effects of updates localStorage with session info.
  */
 var refreshSession = exports.refreshSession = async () => {
   let refreshToken = window.localStorage.getItem('refreshToken')
   let data, encodedData, tokens, idTokenContent
-  if (!refreshToken) {
-    const queryParams = new URLSearchParams(window.location.search)
-    const authorizationCode = queryParams.get('code')
+  const queryParams = new URLSearchParams(window.location.search)
+  const authorizationCode = queryParams.get('code')
+  if (!refreshToken && !authorizationCode) {
+    window.location.href = '../index.html?msg=' + 'no authorization code or refresh token'
+  } else if (!refreshToken && authorizationCode) {
     data = {
       grant_type: 'authorization_code',
       client_id: cfg.clientId,
@@ -164,7 +167,10 @@ var refreshSession = exports.refreshSession = async () => {
     tokens = await postEncodedToEndpoint(cfg.urlAuthToken, encodedData)
     idTokenContent = await validateToken(tokens.id_token)
     refreshToken = tokens.refresh_token
-  } else {
+    window.localStorage.setItem('refreshToken', refreshToken)
+    window.localStorage.setItem('idToken', tokens.id_token)
+    window.localStorage.setItem('userName', idTokenContent.claims['cognito:username'])
+  } else if (refreshToken) {
     data = {
       grant_type: 'refresh_token',
       client_id: cfg.clientId,
@@ -173,10 +179,12 @@ var refreshSession = exports.refreshSession = async () => {
     encodedData = encodeForURI(data)
     tokens = await postEncodedToEndpoint(cfg.urlAuthToken, encodedData)
     idTokenContent = await validateToken(tokens.id_token)
+    window.localStorage.setItem('refreshToken', refreshToken)
+    window.localStorage.setItem('idToken', tokens.id_token)
+    window.localStorage.setItem('userName', idTokenContent.claims['cognito:username'])
+  } else {
+    window.location.href = '../index.html?msg=' + 'refresh error'
   }
-  window.localStorage.setItem('refreshToken', refreshToken)
-  window.localStorage.setItem('idToken', tokens.id_token)
-  window.localStorage.setItem('userName', idTokenContent.claims['cognito:username'])
 }
 
 /**
@@ -189,17 +197,21 @@ var refreshSession = exports.refreshSession = async () => {
  * @alias module:my/cside.heyAPIGateway
  */
 exports.heyAPIGateway = async (resource = '') => {
-  await refreshSession()
-  // console.log('cfg.urlApi: ' + cfg.urlApi)
-  // console.log('cfg.urlOrigin: ' + cfg.urlOrigin)
-  const response = await fetch(cfg.urlApi + resource, {
-    headers: {
-      Origin: cfg.urlOrigin,
-      Authorization: 'Bearer ' + window.localStorage.getItem('idToken')
-    },
-    method: 'GET'
-  })
-  const data = await response.json()
-  // console.log('data: ', data)
-  return data
+  try {
+    await refreshSession()
+    // console.log('cfg.urlApi: ' + cfg.urlApi)
+    // console.log('cfg.urlOrigin: ' + cfg.urlOrigin)
+    const response = await fetch(cfg.urlApi + resource, {
+      headers: {
+        Origin: cfg.urlOrigin,
+        Authorization: 'Bearer ' + window.localStorage.getItem('idToken')
+      },
+      method: 'GET'
+    })
+    const data = await response.json()
+    // console.log('data: ', data)
+    return data
+  } catch (err) {
+    window.location.href = '../index.html?msg=' + err.message
+  }
 }
