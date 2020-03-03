@@ -59,7 +59,7 @@
   <script>
     const queryParams = new URLSearchParams(window.location.search)
     const msg = queryParams.get('msg')
-    document.getElementById('mySpan').innerHTML = '<mark>' + msg + '</mark>'
+    if (msg) document.getElementById('mySpan').innerHTML = '<mark>' + msg + '</mark>'
   </script>
 
 </body>
