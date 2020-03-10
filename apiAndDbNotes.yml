@@ -6,8 +6,8 @@ notes:
   - Users can only create or modify their own items
   - MAYDO: Implement allowing admin users to create/modify items for other users
 isa user:
-  - attributes: node, title
-  - data:
+  - example attributes: node, title
+  - example data:
     - u.1, Sam Smith
     - u.2, Jill Jones
   - api:
@@ -20,10 +20,9 @@ isa user:
     - PATCH  /r/x       # Cognito
     - DELETE /r         # N/A
     - DELETE /r/x       # N/A
-
 isa log:
-  - attributes: node, title, units, days
-  - data:
+  - example attributes: node, title, units, days
+  - example data:
     - l.1, Bench Press 5x, lbs, 7
     - l.2,         Weight, lbs, 7
     - l.3,         Weight, lbs, 1
@@ -38,9 +37,10 @@ isa log:
     - PATCH  /r/x       # node=x. Can also archive.
     - DELETE /r         # N/A
     - DELETE /r/x       # node=x
+    - POST   /r/bd      # bulk delete. NOT TYPICAL.
 isa entry:
-  - attributes: node, title, datum, flag, parent
-  - data:
+  - example attributes: node, title, datum, flag, parent
+  - example data:
     - e.1, 2020-03-01 10:00, 200, , l.1
     - e.2, 2020-03-08 10:00, 210, , l.1
     - e.3, 2020-03-01 10:00, 170, , l.2
@@ -59,5 +59,6 @@ isa entry:
     - PATCH  /r/x       # node=x. Can also archive.
     - DELETE /r         #
     - DELETE /r/x       # node=x
-    - GET    /r?log=x   # node begins with 'e'. parent=x. NOT STANDARD.
+    - POST   /r/bd      # bulk delete. NOT TYPICAL.
+    - GET    /r?log=x   # node begins with 'e'. parent=x. NOT TYPICAL.
 ...
