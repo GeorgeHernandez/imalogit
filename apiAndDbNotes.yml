@@ -1,15 +1,20 @@
 ---
-primary: {pk: userId, sk: node}
-attributes: userId, node, isa, title, note, archived
+primary keys:
+  - table: {pk: node,   sk: title}
+  - gsi:   {pk: parent, sk: title}
+  - gsi:   {pk: user,   sk: title}
+attributes: userId, parent, node, isa, title, note, archived
 notes:
   - All API calls pass userId
   - Users can only create or modify their own items
+  - If the item is user, then parent is node, else parent is parent node.
   - MAYDO: Implement allowing admin users to create/modify items for other users
 isa user:
-  - example attributes: node, title
+  - type specific attributes: N/A
   - example data:
-    - u.1, Sam Smith
-    - u.2, Jill Jones
+    - userId, parent, node, title
+    - u.1,    u.1,    u.1,  Sam Smith
+    - u.2,    u.1,    u.2,  Jill Jones
   - api:
     - POST   /r         # Cognito
     - GET    /r         # N/A
@@ -21,44 +26,46 @@ isa user:
     - DELETE /r         # N/A
     - DELETE /r/x       # N/A
 isa log:
-  - example attributes: node, title, units, days
+  - type specific attributes: unit, days
   - example data:
-    - l.1, Bench Press 5x, lbs, 7
-    - l.2,         Weight, lbs, 7
-    - l.3,         Weight, lbs, 1
-    - l.4, Piano Practice, hrs, 3
+    - userId, parent, node, title,          unit, days
+    - u.1,    u.1,    l.1,  Bench Press 5x, lbs,  7
+    - u.1,    u.1,    l.2,  Weight,         lbs,  7
+    - u.2,    u.2,    l.3,  Weight,         lbs,  1
+    - u.2,    u.2,    l.4,  Piano Practice, hrs,  3
   - api:
     - POST   /r         #
-    - GET    /r         # node begins with 'l'
+    - GET    /r         # parent=userId, isa=log
     - GET    /r/x       # node=x
-    - GET    /r?name=x  # title=x
-    - GET    /r?like=x  # title contains x
+    - GET    /r?name=x  # parent=userId, title=x
+    - GET    /r?like=x  # parent=userId, title contains x
     - PUT    /r/x       # node=x. Can also archive.
     - PATCH  /r/x       # node=x. Can also archive.
     - DELETE /r         # N/A
     - DELETE /r/x       # node=x
-    - POST   /r/bd      # bulk delete. NOT TYPICAL.
+    - POST   /r/deletes # bulk delete. NOT TYPICAL.
 isa entry:
-  - example attributes: node, title, datum, flag, parent
+  - type specific attributes: datum, flag
   - example data:
-    - e.1, 2020-03-01 10:00, 200, , l.1
-    - e.2, 2020-03-08 10:00, 210, , l.1
-    - e.3, 2020-03-01 10:00, 170, , l.2
-    - e.4, 2020-03-08 10:00, 175, , l.2
-    - e.5, 2020-03-02 10:00, 130, , l.3
-    - e.6, 2020-03-03 10:00, 131, , l.3
-    - e.7, 2020-03-02 10:00,   2, , l.4
-    - e.8, 2020-03-03 10:00,   3, , l.4
+    - userId, parent, node, title,            datum
+    - u.1,    l.1,    e.1,  2020-03-01 10:00, 200
+    - u.1,    l.1,    e.2,  2020-03-08 10:00, 210
+    - u.1,    l.2,    e.3,  2020-03-01 10:00, 170
+    - u.1,    l.2,    e.4,  2020-03-08 10:00, 175
+    - u.2,    l.3,    e.5,  2020-03-02 10:00, 130
+    - u.2,    l.3,    e.6,  2020-03-03 10:00, 131
+    - u.2,    l.4,    e.7,  2020-03-02 10:00, 2
+    - u.2,    l.4,    e.8,  2020-03-03 10:00, 3
   - api:
     - POST   /r         #
-    - GET    /r         # node begins with 'e'
+    - GET    /r         # user=userId, isa=entry
     - GET    /r/x       # node=x
-    - GET    /r?name=x  # title=x
-    - GET    /r?like=x  # title contains x
+    - GET    /r?name=x  # user=userId, title=x
+    - GET    /r?like=x  # user=userId, title contains x
     - PUT    /r/x       # node=x. Can also archive.
     - PATCH  /r/x       # node=x. Can also archive.
-    - DELETE /r         #
+    - DELETE /r         # N/A
     - DELETE /r/x       # node=x
-    - POST   /r/bd      # bulk delete. NOT TYPICAL.
-    - GET    /r?log=x   # node begins with 'e'. parent=x. NOT TYPICAL.
+    - POST   /r/deletes # bulk delete. NOT TYPICAL.
+    - GET    /r?log=x   # parent=x. NOT TYPICAL.
 ...
