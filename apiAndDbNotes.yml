@@ -3,13 +3,13 @@ primary keys:
   - table: {pk: parent, sk: title} # for collections of items
   - gsi:   {pk: node}              # for items
   - gsi:   {pk: parent, sk: flag}  # MAY DO this sparse index
-attributes: userId, parent, node, isa, title, note, archived
+attributes: userId, parent, node, title, note, archived
 notes:
   - All API calls pass userId
   - Users can only create or modify their own items
   - If the item is user, then parent is node, else parent is parent node.
   - MAYDO: Implement allowing admin users to create/modify items for other users
-isa user:
+user items:
   - type specific attributes: N/A
   - example data:
     - userId, parent, node, title
@@ -25,17 +25,17 @@ isa user:
     - PATCH  /r/x       # Cognito
     - DELETE /r         # N/A
     - DELETE /r/x       # N/A
-isa log:
+log items:
   - type specific attributes: unit, days
   - example data:
     - userId, parent, node, title,          unit, days
     - u.1,    u.1,    l.1,  Bench Press 5x, lbs,  7
     - u.1,    u.1,    l.2,  Weight,         lbs,  7
     - u.2,    u.2,    l.3,  Weight,         lbs,  1
-    - u.2,    u.2,    l.4,  Piano Practice, hrs,  3
+    - u.2,    u.2,    l.4,  Piano Practice, hrs,  2
   - api:
     - POST   /r         # parent=userId
-    - GET    /r         # parent=userId, isa=log
+    - GET    /r         # parent=userId, isa=log or node begins_with l
     - GET    /r/x       # node=x
     - GET    /r?name=x  # parent=userId, title=x
     - GET    /r?like=x  # N/A. Can only do title begins_with x?
@@ -44,7 +44,7 @@ isa log:
     - DELETE /r         # N/A
     - DELETE /r/x       # node=x
     - POST   /r/deletes # delete node=[...]. NOT TYPICAL.
-isa entry:
+entry items:
   - type specific attributes: datum, flag
   - example data:
     - userId, parent, node, title,            datum
