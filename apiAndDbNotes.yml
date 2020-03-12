@@ -1,8 +1,8 @@
 ---
 primary keys:
-  - table: {pk: node,   sk: title}
-  - gsi:   {pk: parent, sk: title}
-  - gsi:   {pk: user,   sk: title}
+  - table: {pk: parent, sk: title} # for collections of items
+  - gsi:   {pk: node}              # for items
+  - gsi:   {pk: parent, sk: flag}  # MAY DO this sparse index
 attributes: userId, parent, node, isa, title, note, archived
 notes:
   - All API calls pass userId
@@ -34,16 +34,16 @@ isa log:
     - u.2,    u.2,    l.3,  Weight,         lbs,  1
     - u.2,    u.2,    l.4,  Piano Practice, hrs,  3
   - api:
-    - POST   /r         #
+    - POST   /r         # parent=userId
     - GET    /r         # parent=userId, isa=log
     - GET    /r/x       # node=x
     - GET    /r?name=x  # parent=userId, title=x
-    - GET    /r?like=x  # parent=userId, title contains x
+    - GET    /r?like=x  # N/A. Can only do title begins_with x?
     - PUT    /r/x       # node=x. Can also archive.
     - PATCH  /r/x       # node=x. Can also archive.
     - DELETE /r         # N/A
     - DELETE /r/x       # node=x
-    - POST   /r/deletes # bulk delete. NOT TYPICAL.
+    - POST   /r/deletes # delete node=[...]. NOT TYPICAL.
 isa entry:
   - type specific attributes: datum, flag
   - example data:
@@ -57,15 +57,16 @@ isa entry:
     - u.2,    l.4,    e.7,  2020-03-02 10:00, 2
     - u.2,    l.4,    e.8,  2020-03-03 10:00, 3
   - api:
-    - POST   /r         #
-    - GET    /r         # user=userId, isa=entry
+    - POST   /r         # parent=logId
+    - GET    /r         # N/A
     - GET    /r/x       # node=x
-    - GET    /r?name=x  # user=userId, title=x
-    - GET    /r?like=x  # user=userId, title contains x
+    - GET    /r?name=x  # N/A
+    - GET    /r?like=x  # N/A
     - PUT    /r/x       # node=x. Can also archive.
     - PATCH  /r/x       # node=x. Can also archive.
     - DELETE /r         # N/A
     - DELETE /r/x       # node=x
-    - POST   /r/deletes # bulk delete. NOT TYPICAL.
+    - DELETE /r?log=x   # parent=x. NOT TYPICAL.
+    - POST   /r/deletes # delete node=[...]. NOT TYPICAL.
     - GET    /r?log=x   # parent=x. NOT TYPICAL.
 ...
