@@ -12,11 +12,9 @@
   "author": "George Hernandez <george.hernandez+dev@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "amazon-cognito-identity-js": "^3.2.2",
     "base64url": "^3.0.1",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.3",
-    "node-fetch": "^2.6.0",
-    "request": "^2.88.0"
+    "node-fetch": "^2.6.0"
   }
 }
