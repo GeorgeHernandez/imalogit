@@ -1,4 +1,4 @@
-const ssession = require('./my/ssession.js')
+const sside = require('/opt/nodejs/my/sside.js')
 
 exports.handler = async (event) => {
   const authorization = event.headers.Authorization // Authenticated by Cognito.
@@ -11,7 +11,7 @@ exports.handler = async (event) => {
   results.dataCount = 0 // Usually a count of the objects in the data
   results.data = '' // Usually an array of non-nested objects
 
-  const session = await ssession.validateToken(token).catch(err => {
+  const session = await sside.validateToken(token).catch(err => {
     results.message = err.message
     return makeResponse(results)
   })
@@ -26,8 +26,8 @@ exports.handler = async (event) => {
     results.data = [
       {
         bearerType: bearerType,
-        userId: session.sub,
-        email: session.email
+        userId: session.claims.sub,
+        email: session.claims.email
       }
     ]
   } else if (bearerType === 'code') {
