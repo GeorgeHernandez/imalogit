@@ -190,7 +190,7 @@ var refreshSession = exports.refreshSession = async () => {
 /**
  * Prepping for calls to the API Gateway.
  * @param {string} resource Default is ''. E.g. 'entry', 'log', 'user', etc
- * @todo building
+ * @todo building. If present, resource must be prefixed with '/'.
  * @returns
  *   Probably JSON data.
  *   Side-effect: Updates localStorage for tokens.
@@ -212,6 +212,6 @@ exports.heyAPIGateway = async (resource = '') => {
     // console.log('data: ', data)
     return data
   } catch (err) {
-    window.location.href = '../index.html?msg=' + err.message
+    window.location.href = '../index.html?msg=API: ' + err.message
   }
 }
