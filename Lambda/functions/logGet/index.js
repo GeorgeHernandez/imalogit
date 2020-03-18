@@ -1,4 +1,7 @@
+const AWS = require('aws-sdk')
+const uuid = require('uuid')
 const sside = require('/opt/nodejs/my/sside.js')
+const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10' })
 
 exports.handler = async (event) => {
   const authorization = event.headers.Authorization // Authenticated by Cognito.
@@ -23,13 +26,23 @@ exports.handler = async (event) => {
     results.success = true
     results.message = 'Hi from Lambda'
     results.dataCount = 1
-    results.data = [
-      {
-        bearerType: bearerType,
-        userId: session.claims.sub,
-        email: session.claims.email
-      }
-    ]
+
+    // Non-DynamoDB data:
+    // results.data = [
+    //   {
+    //     bearerType: bearerType,
+    //     userId: session.claims.sub,
+    //     email: session.claims.email
+    //   }
+    // ]
+
+    // DynamoDB data:
+    const params = {
+      TableName: 'imalogit',
+      KeyConditionExpression: 'parent = u.' + session.claims.sub
+    }
+    // console.log(params)
+    results.data = params
   } else if (bearerType === 'code') {
     results.message = 'We do not take code'
   }
