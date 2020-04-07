@@ -1,7 +1,7 @@
 const AWS = require('aws-sdk')
 const uuid = require('uuid')
 const sside = require('/opt/nodejs/my/sside.js')
-const dynamodb = new AWS.DynamoDB({ apiVersion: '2012-08-10' })
+const ddb = new AWS.DynamoDB()
 
 exports.handler = async (event) => {
   const authorization = event.headers.Authorization // Authenticated by Cognito.
@@ -12,7 +12,7 @@ exports.handler = async (event) => {
   results.success = false
   results.message = '' // Usually ignored if successful
   results.dataCount = 0 // Usually a count of the objects in the data
-  results.data = '' // Usually an array of non-nested objects
+  results.data = [] // Usually an array of just key-value objects. E.g. [{name: 'Abe', age: 3}, {name: ' Boo', age: 4}]
 
   const session = await sside.validateToken(token).catch(err => {
     results.message = err.message
@@ -27,7 +27,7 @@ exports.handler = async (event) => {
     results.message = 'Hi from Lambda'
     results.dataCount = 1
 
-    // Non-DynamoDB data:
+    // // DEV ONLY: Non-DynamoDB data:
     // results.data = [
     //   {
     //     bearerType: bearerType,
@@ -42,7 +42,7 @@ exports.handler = async (event) => {
       KeyConditionExpression: 'parent = u.' + session.claims.sub
     }
     // console.log(params)
-    results.data = params
+    results.data[0] = params
   } else if (bearerType === 'code') {
     results.message = 'We do not take code'
   }
