@@ -1,0 +1,66 @@
+---
+summary: Notes on the DynamoDB and API Gateway schema used by imalogit. See also the testData.json file which can be used to load the data into DynamoDB via the AWS CLI with something like "aws dynamodb batch-write-item --profile gh --request-items file://testData.json".
+primary index: {pk: parent, sk: title}
+GSI: {pk: node}
+attributes present for all items: userId, parent, node (nodeTypeId.nodeId), title
+attributes present as needed: note, archived
+notes:
+  - All API calls pass userId
+  - Users can only create or modify their own items
+  - MAYDO: Implement allowing admin users to create/modify items for other users
+isa user:
+  - attributes: node, title
+  - data:
+    - u.1, Sam Smith
+    - u.2, Jill Jones
+  - api:
+    - POST   /r         # Cognito
+    - GET    /r         # N/A
+    - GET    /r/x       # N/A
+    - GET    /r?name=x  # N/A
+    - GET    /r?like=x  # N/A
+    - PUT    /r/x       # Cognito
+    - PATCH  /r/x       # Cognito
+    - DELETE /r         # N/A
+    - DELETE /r/x       # N/A
+  - N.B.: It turns out that this type isn't needed after all!
+isa log (l):
+  - attributes: node, title, unit, days
+  - data:
+    - l.1, Bench Press 5x, lbs, 7
+    - l.2,         Weight, lbs, 7
+    - l.3,         Weight, lbs, 1
+    - l.4, Piano Practice, hrs, 2
+  - api:
+    - POST   /r         #
+    - GET    /r         # node begins with 'l'
+    - GET    /r/x       # node=x
+    - GET    /r?name=x  # title=x
+    - GET    /r?like=x  # title contains x
+    - PUT    /r/x       # node=x. Can also archive.
+    - PATCH  /r/x       # node=x. Can also archive.
+    - DELETE /r         # N/A
+    - DELETE /r/x       # node=x
+isa entry (e):
+  - attributes: node, title, datum, flag, parent
+  - data:
+    - e.1, 2020-03-01 10:00, 200, , l.1
+    - e.2, 2020-03-08 10:00, 210, , l.1
+    - e.3, 2020-03-01 10:00, 170, , l.2
+    - e.4, 2020-03-08 10:00, 175, , l.2
+    - e.5, 2020-03-02 10:00, 130, , l.3
+    - e.6, 2020-03-03 10:00, 131, , l.3
+    - e.7, 2020-03-02 10:00,   2, , l.4
+    - e.8, 2020-03-03 10:00,   3, , l.4
+  - api:
+    - POST   /r         #
+    - GET    /r         # node begins with 'e'
+    - GET    /r/x       # node=x
+    - GET    /r?name=x  # title=x
+    - GET    /r?like=x  # title contains x
+    - PUT    /r/x       # node=x. Can also archive.
+    - PATCH  /r/x       # node=x. Can also archive.
+    - DELETE /r         #
+    - DELETE /r/x       # node=x
+    - GET    /r?log=x   # node begins with 'e'. parent=x. NOT STANDARD.
+...
