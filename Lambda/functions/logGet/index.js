@@ -1,5 +1,5 @@
 const AWS = require('aws-sdk')
-const uuid = require('uuid')
+// const uuid = require('uuid')
 const sside = require('/opt/nodejs/my/sside.js')
 const ddb = new AWS.DynamoDB()
 
@@ -27,27 +27,23 @@ exports.handler = async (event) => {
     results.message = 'Hi from Lambda'
     results.dataCount = 1
 
-    // // DEV ONLY: Non-DynamoDB data:
-    // results.data = [
-    //   {
-    //     bearerType: bearerType,
-    //     userId: session.claims.sub,
-    //     email: session.claims.email
-    //   }
-    // ]
-
     // DynamoDB data:
     const params = {
       TableName: 'imalogit',
-      KeyConditionExpression: 'parent = u.' + session.claims.sub
+      KeyConditionExpression: 'parent = :v1',
+      ExpressionAttributeValues: { ':v1': { S: 'u.' + session.claims.sub } }
     }
     // console.log(params)
     results.data[0] = params
+    return makeResponse(results)
+
+    // ddb.query(params, function (err, data) {
+    //   if (err) return makeResponse(err, err.stack)
+    //   else return makeResponse(data)
+    // })
   } else if (bearerType === 'code') {
     results.message = 'We do not take code'
   }
-
-  return makeResponse(results)
 }
 
 function makeResponse (results) {
