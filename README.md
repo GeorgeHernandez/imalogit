@@ -6,7 +6,10 @@ The goal of this app is to allow users to quickly access logs, log entries, and 
 
 Summary notes on the repo content
 
-- `/`. The static site content plus some other stuff like `.gitignore` and the `package.json` used by `cside`.
+- `/`. The static site content plus some other stuff.
+    - `.gitignore`
+    - `package.json`. Used by `cside`.
+    - `schema.yml`. Notes on the DynamoDB and API Gateway schema.
 - `/app/`. The dynamic site content that interacts with the backend AWS services.
     - `/app/src/`. The client-side source code that is "compiled" by Browserify to  `/app/`.
 - `/Lambda/`. Backend code for AWS Lambda functions and layers.

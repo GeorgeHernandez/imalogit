@@ -28,10 +28,9 @@ exports.handler = async (event) => {
 
   // This works as only content of this function:
   const ddb = new AWS.DynamoDB()
-  const myPromise = ddb.listTables().promise().catch(err => {
-    return makeResponse(err)
-  })
-  return myPromise
+  const myPromise = ddb.listTables().promise()
+  const myResponse = myPromise.then(data => makeResponse(data)).catch(err => makeResponse(err))
+  return myResponse
 }
 
 function makeResponse (results) {
