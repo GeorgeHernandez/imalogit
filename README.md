@@ -13,7 +13,7 @@ Summary notes on the repo content
 - `/app/`. The dynamic site content that interacts with the backend AWS services.
     - `/app/src/`. The client-side source code that is "compiled" by Browserify to  `/app/`.
 - `/Lambda/`. Backend code for AWS Lambda functions and layers.
-    - `/Lambda/functions/`. My AWS Lambda functions, usuall called by the app vie AWS API Gateway.
-    - `/Lambda/layers/uno/`. My `sside` Node.js for the Lambda functions to use.
+    - `/Lambda/functions/`. My AWS Lambda functions, usuall called by the app via AWS API Gateway.
+    - `/Lambda/layers/uno/`. My `sside` Node.js for my Lambda functions to use.
 - `/my/`. My `cside` Node.js for the site's app to interact with backend AWS services.
     - `/my/out/`. Documentation for `cside` that I periodically create with JSDoc.
