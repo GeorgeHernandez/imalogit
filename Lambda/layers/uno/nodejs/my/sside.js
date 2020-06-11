@@ -97,3 +97,21 @@ async function validateToken (idToken) {
   return body
 }
 exports.validateToken = validateToken
+
+/**
+ * Take some data and wrap in JSON expected by API Gateway.
+ * @param {string} data Some data the client asked for.
+ * @returns {object} A JSON object expected by API Gateway.
+ */
+function makeResponse (data) {
+  const response = {
+    statusCode: 200,
+    headers: {
+      'Access-Control-Allow-Origin': 'https://imalogit.com',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }
+  return response
+}
+exports.makeResponse = makeResponse

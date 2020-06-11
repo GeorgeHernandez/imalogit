@@ -1,7 +1,8 @@
-const AWS = require('aws-sdk')
-// const uuid = require('uuid')
 const sside = require('/opt/nodejs/my/sside.js')
-const ddb = new AWS.DynamoDB()
+const AWS = require('aws-sdk')
+AWS.config.update({ region: 'us-east-1' })
+const ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' })
+// const ddbDoc = new AWS.DynamoDB.DocumentClient({ apiVersion: '2012-08-10' })
 
 exports.handler = async (event, context) => {
   const authorization = event.headers.Authorization // Authenticated by Cognito.
@@ -19,12 +20,12 @@ exports.handler = async (event, context) => {
 
   if (bearerType !== 'id_token') {
     results.message = 'Invalid token'
-    return makeResponse(results)
+    return sside.makeResponse(results)
   }
 
   const session = await sside.validateToken(token).catch(err => {
     results.message = err.message
-    return makeResponse(results)
+    return sside.makeResponse(results)
   })
 
   // A real function would do the above session check, but then do other stuff.
@@ -40,31 +41,7 @@ exports.handler = async (event, context) => {
     KeyConditionExpression: 'parent = :v1',
     ExpressionAttributeValues: { ':v1': { S: 'u.' + session.claims.sub } }
   }
-  // console.log(params)
-  // results.data[0] = params
-  // // return results
-  // return makeResponse(results)
-
   const myPromise = ddb.query(params).promise()
-  // return myPromise // Works
-  // return myPromise.then(data => data).catch(err => err) // Works
-  const myResponse = myPromise.then(data => makeResponse(data)).catch(err => makeResponse(err))
+  const myResponse = myPromise.then(data => sside.makeResponse(data)).catch(err => sside.makeResponse(err))
   return myResponse
-}
-
-/**
- * Take some data and wrap in JSON expected by API Gateway.
- * @param {string} results Some sort of data the client asked for.
- * @returns {object} A JSON object expected by API Gateway.
- */
-function makeResponse (results) {
-  const response = {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': 'https://imalogit.com',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(results)
-  }
-  return response
 }
