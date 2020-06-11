@@ -1,3 +1,8 @@
+/**
+ * Server-side code for dealing with sessions, etc.
+ * @module my/cside
+ */
+
 const base64url = require('base64url')
 const fetch = require('node-fetch')
 // global.fetch = require('node-fetch');
@@ -8,6 +13,7 @@ const cfg = require('./config')
 /**
  * Verify a JWT & return object with claims.
  * https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
+ * This function SHOULD be exactly inc cside.j & sside.js.
  * @param {string} idToken JWT for the id_token
  * @returns {object} The key property is .claims. The other properties are for debugging.
  */

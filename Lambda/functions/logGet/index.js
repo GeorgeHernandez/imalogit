@@ -48,32 +48,15 @@ exports.handler = async (event, context) => {
   const myPromise = ddb.query(params).promise()
   // return myPromise // Works
   // return myPromise.then(data => data).catch(err => err) // Works
-  const answer = myPromise.then(data => data).catch(err => err) // Works
-  return answer // Works
-  // const answerString = JSON.stringify(answer)
-  // return answerString //  "{}"?!
-  // return typeof answer // object
-  // return makeResponse(answer) // body is "{}"?!
-  // const response = makeResponse(answer)
-  // return typeof response // object
-  // return response // body is "{}"?!
-  // return await makeResponse(answer) // body is "{}"?!
-  // return JSON.stringify(answer) // response is "{}"?!
-  // return wrapResults(answer) // body is "{}"?!
-  // return await wrapResults(answer) // body is "{}"?!
-
-  // const response = {
-  //   statusCode: 200,
-  //   headers: {
-  //     'Access-Control-Allow-Origin': 'https://imalogit.com',
-  //     'foo': 'bar',
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: answer
-  // }
-  // return response
+  const myResponse = myPromise.then(data => makeResponse(data)).catch(err => makeResponse(err))
+  return myResponse
 }
 
+/**
+ * Take some data and wrap in JSON expected by API Gateway.
+ * @param {string} results Some sort of data the client asked for.
+ * @returns {object} A JSON object expected by API Gateway.
+ */
 function makeResponse (results) {
   const response = {
     statusCode: 200,
@@ -84,20 +67,4 @@ function makeResponse (results) {
     body: JSON.stringify(results)
   }
   return response
-}
-
-async function wrapResults (results) {
-  const response = {
-    statusCode: 200,
-    headers: {
-      'Access-Control-Allow-Origin': 'https://imalogit.com',
-      'Content-Type': 'application/json'
-    },
-    body: await asyncStringify(results)
-  }
-  return response
-}
-
-async function asyncStringify (value) {
-  return JSON.stringify(value)
 }

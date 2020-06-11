@@ -1,6 +1,6 @@
 /* global fetch */ /* For linting */
 /**
- * Client-side code for dealing with session, API Gateway calls, etc.
+ * Client-side code for dealing with sessions, API Gateway calls, etc.
  * Use Case 1: Just signed in.
  * - User signs in & gets a code in the querystring.
  * - Send code to the TOKEN endpoint to get tokens & user meta.
@@ -60,6 +60,7 @@ async function postEncodedToEndpoint (url = '', body = '') {
 /**
  * Verify a JWT & return object with claims.
  * https://docs.aws.amazon.com/en_pv/cognito/latest/developerguide/amazon-cognito-user-pools-using-tokens-verifying-a-jwt.html
+ * This function SHOULD be exactly inc cside.j & sside.js.
  * @param {string} idToken JWT for the id_token
  * @returns {object} The key property is .claims. The other properties are for debugging.
  */

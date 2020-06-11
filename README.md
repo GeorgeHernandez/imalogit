@@ -2,7 +2,9 @@
 
 Log stuff quickly.
 
-The goal of this app is to allow users to quickly access logs, log entries, and see simple run-time charts for these logs. For more, see our [About Us](https://imalogit.com/about.html).
+The primary goal of this app is to allow users to quickly access logs, log entries, and see simple run-time charts for these logs. For more, see our [About Us](https://imalogit.com/about.html).
+
+A secondary goal of this app is to openly show how to do a "serverless" site using largely AWS S3, API Gateway, and Lambda. JavaScript is used both cliet-side and server-side.
 
 Summary notes on the repo content
 
