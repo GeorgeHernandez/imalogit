@@ -25,13 +25,6 @@
         let second = now.getSeconds();
         let timezoneOffset = now.getTimezoneOffset();
 
-        // Pad some values
-        let monthPadded = month < 10 ? "0" + month : month;
-        let dayPadded = day < 10 ? "0" + day : day;
-        let hourPadded = hour < 10 ? "0" + hour : hour;
-        let minutePadded = minute < 10 ? "0" + minute : minute;
-        let secondPadded = second < 10 ? "0" + second : second;
-
         let months = [
           "Jan",
           "Feb",
@@ -53,10 +46,18 @@
         let ampm = hour >= 12 ? "PM" : "AM";
         let timezoneOffsetHours = timezoneOffset / 60;
 
+        // Pad some values
+        let monthPadded = month < 10 ? "0" + month : month;
+        let dayPadded = day < 10 ? "0" + day : day;
+        let hourPadded = hour < 10 ? "0" + hour : hour;
+        let hourAmpmPadded = hour < 10 ? "0" + hour : hour;
+        let minutePadded = minute < 10 ? "0" + minute : minute;
+        let secondPadded = second < 10 ? "0" + second : second;
+
         // Display the date and time
         document.getElementById(
           "now"
-        ).innerHTML = `${year}-${monthPadded}(${monthName})-${dayPadded}(${dayOfWeekName}) ${hourPadded}:${minutePadded}:${secondPadded} (GMT ${-timezoneOffsetHours}h) ${hourAmpm}:${minutePadded} ${ampm}`;
+        ).innerHTML = `${year}-${monthPadded}(${monthName})-${dayPadded}(${dayOfWeekName})<br>${hourPadded}:${minutePadded}:${secondPadded} (GMT ${-timezoneOffsetHours}h)<br>${hourAmpmPadded}:${minutePadded}:${secondPadded} ${ampm}`;
       };
       // Set the interval to refresh the time every second
       setInterval(showNow, 1000);
