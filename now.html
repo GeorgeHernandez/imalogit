@@ -9,8 +9,7 @@
     -->
   </head>
   <body>
-    <h1>Now</h1>
-    <h2 id="now"></h2>
+    <h1 id="now"></h1>
     <script>
       const showNow = () => {
         let now = new Date();
@@ -39,7 +38,7 @@
           "Nov",
           "Dec",
         ];
-        let monthName = months[month];
+        let monthName = months[month - 1];
         let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         let dayOfWeekName = days[dayOfWeek];
         let hourAmpm = hour >= 12 ? hour - 12 : hour;
@@ -50,14 +49,14 @@
         let monthPadded = month < 10 ? "0" + month : month;
         let dayPadded = day < 10 ? "0" + day : day;
         let hourPadded = hour < 10 ? "0" + hour : hour;
-        let hourAmpmPadded = hour < 10 ? "0" + hour : hour;
+        let hourAmpmPadded = hourAmpm < 10 ? "0" + hourAmpm : hourAmpm;
         let minutePadded = minute < 10 ? "0" + minute : minute;
         let secondPadded = second < 10 ? "0" + second : second;
 
         // Display the date and time
         document.getElementById(
           "now"
-        ).innerHTML = `${year}-${monthPadded}(${monthName})-${dayPadded}(${dayOfWeekName})<br>${hourPadded}:${minutePadded}:${secondPadded} (GMT ${-timezoneOffsetHours}h)<br>${hourAmpmPadded}:${minutePadded}:${secondPadded} ${ampm}`;
+        ).innerHTML = `${year}-${monthPadded}${monthName}-${dayPadded}${dayOfWeekName}<br>${hourPadded}:${minutePadded}:${secondPadded} GMT ${-timezoneOffsetHours}h<br>${hourAmpmPadded}:${minutePadded}:${secondPadded} ${ampm}`;
       };
       // Set the interval to refresh the time every second
       setInterval(showNow, 1000);
