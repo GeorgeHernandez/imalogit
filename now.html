@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Now</title>
+    <!--
+      This file is at https://github.com/GeorgeHernandez/imalogit/blob/master/now.html.
+      You can open a local copy in a browser.
+    -->
+  </head>
+  <body>
+    <h1>Now</h1>
+    <h2 id="now"></h2>
+    <script>
+      const showNow = () => {
+        let now = new Date();
+
+        // Get the date and time in different formats
+        let year = now.getFullYear();
+        let month = now.getMonth() + 1;
+        let day = now.getDate();
+        let dayOfWeek = now.getDay();
+        let hour = now.getHours();
+        let minute = now.getMinutes();
+        let second = now.getSeconds();
+        let timezoneOffset = now.getTimezoneOffset();
+
+        // Pad some values
+        let monthPadded = month < 10 ? "0" + month : month;
+        let dayPadded = day < 10 ? "0" + day : day;
+        let hourPadded = hour < 10 ? "0" + hour : hour;
+        let minutePadded = minute < 10 ? "0" + minute : minute;
+        let secondPadded = second < 10 ? "0" + second : second;
+
+        let months = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        let monthName = months[month];
+        let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        let dayOfWeekName = days[dayOfWeek];
+        let hourAmpm = hour >= 12 ? hour - 12 : hour;
+        let ampm = hour >= 12 ? "PM" : "AM";
+        let timezoneOffsetHours = timezoneOffset / 60;
+
+        // Display the date and time
+        document.getElementById(
+          "now"
+        ).innerHTML = `${year}-${monthPadded}(${monthName})-${dayPadded}(${dayOfWeekName}) ${hourPadded}:${minutePadded}:${secondPadded} (GMT ${-timezoneOffsetHours}h) ${hourAmpm}:${minutePadded} ${ampm}`;
+      };
+      // Set the interval to refresh the time every second
+      setInterval(showNow, 1000);
+    </script>
+  </body>
+</html>
