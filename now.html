@@ -67,8 +67,8 @@
           "now"
         ).innerHTML = `${year}-${monthPadded}-${dayPadded}<br>${year}-${monthName}-${dayOfWeekName}<br>${hourPadded}:${minutePadded}:${secondPadded} GMT ${-timezoneOffsetHours}h<br>${hourAmpmPadded}:${minutePadded}:${secondPadded} ${ampm}`;
       };
-      // Set the interval to refresh the time every second
-      setInterval(showNow, 1000);
+      // Set the interval in ms to refresh the time
+      setInterval(showNow, 3000);
     </script>
   </body>
 </html>
