@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
     <title>Now</title>
     <!--
-      This file is at https://github.com/GeorgeHernandez/imalogit/blob/master/now.html.
-      You can open a local copy in a browser.
+      README
+      Display key local date and time info
+      Via: https://gist.github.com/GeorgeHernandez/9190e4d046d3440882b02ae766265d51
+      Usage: Save this file as a local copy, then open in a browser.
     -->
     <style>
       body {
@@ -21,51 +23,96 @@
     <h1 id="now"></h1>
     <script>
       const showNow = () => {
-        let now = new Date();
+        const now = new Date();
 
         // Get the date and time in different formats
-        let year = now.getFullYear();
-        let month = now.getMonth() + 1;
-        let day = now.getDate();
-        let dayOfWeek = now.getDay();
-        let hour = now.getHours();
-        let minute = now.getMinutes();
-        let second = now.getSeconds();
-        let timezoneOffset = now.getTimezoneOffset();
+        const year = now.getFullYear();
+        const month = now.getMonth() + 1;
+        const day = now.getDate();
+        const dayOfWeek = now.getDay();
+        const daysInMonth = new Date(year, month, 0).getDate();
+        const isLeapYear =
+          (year % 4 === 0 && !(year % 100 === 0)) || year % 400 === 0;
+        const daysInYear = isLeapYear ? 366 : 365;
+        const dayOfYear = Math.floor(
+          (now.getTime() - new Date(now.getFullYear(), 0, 1, 0, 0, 0)) /
+            (1000 * 60 * 60 * 24)
+        );
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const second = now.getSeconds();
+        const timezoneOffset = -now.getTimezoneOffset();
 
-        let months = [
-          "Ja",
-          "Fe",
-          "Ma",
-          "Ap",
-          "Ma",
-          "Ju",
-          "Ju",
-          "Au",
-          "Se",
-          "Oc",
-          "No",
-          "De",
+        // Alas English month names need 3 character to be distinct:
+        const months = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
         ];
-        let monthName = months[month - 1];
-        let days = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
-        let dayOfWeekName = days[dayOfWeek];
-        let hourAmpm = hour >= 12 ? hour - 12 : hour;
-        let ampm = hour >= 12 ? "PM" : "AM";
-        let timezoneOffsetHours = timezoneOffset / 60;
+        const monthName = months[month - 1];
+        // English day names only need 2 character to be distinct, but alas 3 is expecte:
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const dayOfWeekName = days[dayOfWeek];
+        const hourAmpm = hour >= 12 ? hour - 12 : hour;
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const localTimezone = new Intl.DateTimeFormat().resolvedOptions()
+          .timeZone;
 
         // Pad some values
-        let monthPadded = month < 10 ? "0" + month : month;
-        let dayPadded = day < 10 ? "0" + day : day;
-        let hourPadded = hour < 10 ? "0" + hour : hour;
-        let hourAmpmPadded = hourAmpm < 10 ? "0" + hourAmpm : hourAmpm;
-        let minutePadded = minute < 10 ? "0" + minute : minute;
-        let secondPadded = second < 10 ? "0" + second : second;
+        const monthPadded = pad(month, 2);
+        const dayPadded = pad(day, 2);
+        const daysInMonthPadded = pad(daysInMonth);
+        const dayOfYearPadded = pad(dayOfYear, 3);
+        const hourPadded = pad(hour, 2);
+        const hourAmpmPadded = pad(hourAmpm, 2);
+        const minutePadded = pad(minute, 2);
+        const secondPadded = pad(second, 2);
+        const timezoneOffsetPadded = getTimezoneOffsetPadded(timezoneOffset);
+
+        function pad(number, targetLength, padCharacter = "0") {
+          const paddedNumber = String(number);
+          const paddingLength = targetLength - paddedNumber.length;
+          const padding = padCharacter.repeat(paddingLength);
+
+          return padding + paddedNumber;
+        }
+        function getTimezoneOffsetPadded(timezoneOffset) {
+          // Get the absolute value of the timezone offset.
+          const absOffset = Math.abs(timezoneOffset);
+
+          // Pad the minutes to two digits.
+          const paddedMinutes = pad(absOffset % 60, 2);
+
+          // Convert the timezone offset to a string.
+          const timezoneOffsetString =
+            (timezoneOffset >= 0 ? "+" : "-") +
+            pad(Math.floor(absOffset / 60), 2) +
+            ":" +
+            paddedMinutes;
+
+          return timezoneOffsetString;
+        }
 
         // Display the date and time
-        document.getElementById(
-          "now"
-        ).innerHTML = `${year}-${monthPadded}-${dayPadded}<br>${year}-${monthName}-${dayOfWeekName}<br>${hourPadded}:${minutePadded}:${secondPadded} GMT ${-timezoneOffsetHours}h<br>${hourAmpmPadded}:${minutePadded}:${secondPadded} ${ampm}`;
+        const lines = [];
+        lines[0] = `${year}-${monthPadded}-${dayPadded}&nbsp;&nbsp;&nbsp;${daysInMonthPadded}`;
+        lines[1] = `${dayOfYearPadded}/${daysInYear} ${dayOfWeekName}&nbsp;&nbsp;${monthName}`;
+        lines[2] = `${hourPadded}:${minutePadded}:${secondPadded}${timezoneOffsetPadded}`;
+        lines[3] = `${hourAmpmPadded}:${minutePadded} ${ampm}`;
+        lines[4] = `${localTimezone}`;
+        lines[5] = `➖😵‍💫👿🤑😨🌐`;
+        lines[6] = `➕🤔🥰🤗😎🏡`;
+        lines[7] = `➕🙏🈚💮⏭️🎬🌱⏳🌳Ω`;
+        document.getElementById("now").innerHTML = lines.join("<br>");
       };
       // Set the interval in ms to refresh the time
       setInterval(showNow, 3000);
