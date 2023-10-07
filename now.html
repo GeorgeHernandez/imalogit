@@ -104,14 +104,18 @@
 
         // Display the date and time
         const lines = [];
-        lines[0] = `${year}-${monthPadded}-${dayPadded}&nbsp;&nbsp;&nbsp;${daysInMonthPadded}`;
-        lines[1] = `${dayOfYearPadded}/${daysInYear} ${dayOfWeekName}&nbsp;&nbsp;${monthName}`;
-        lines[2] = `${hourPadded}:${minutePadded}:${secondPadded}${timezoneOffsetPadded}`;
-        lines[3] = `${hourAmpmPadded}:${minutePadded} ${ampm}`;
-        lines[4] = `${localTimezone}`;
-        lines[5] = `➖😵‍💫👿🤑😨🌐`;
-        lines[6] = `➕🤔🥰🤗😎🏡`;
-        lines[7] = `➕🙏🈚💮⏭️🎬🌱⏳🌳Ω`;
+        lines.push(`${year}-${monthPadded}-${dayPadded} ${dayOfWeekName}`);
+        lines.push(
+          `${dayOfYearPadded}/${daysInYear} ${daysInMonthPadded} ${monthName}`
+        );
+        lines.push(
+          `${hourPadded}:${minutePadded}:${secondPadded}${timezoneOffsetPadded}`
+        );
+        lines.push(`${hourAmpmPadded}:${minutePadded} ${ampm}`);
+        lines.push(`${localTimezone}`);
+        lines.push(`➕🌱⏳🌳🙏🈚💮⏭️🎬Ω`);
+        lines.push(`➕🤔🥰🤗😎🏡`);
+        lines.push(`➖😵‍💫👿🤑😨🌐`);
         document.getElementById("now").innerHTML = lines.join("<br>");
       };
       // Set the interval in ms to refresh the time
