@@ -62,7 +62,7 @@
         // English day names only need 2 character to be distinct, but alas 3 is expecte:
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const dayOfWeekName = days[dayOfWeek];
-        const hourAmpm = hour >= 12 ? hour - 12 : hour;
+        const hourAmpm = hour > 12 ? hour - 12 : hour;
         const ampm = hour >= 12 ? "PM" : "AM";
         const localTimezone = new Intl.DateTimeFormat().resolvedOptions()
           .timeZone;
@@ -119,7 +119,7 @@
         document.getElementById("now").innerHTML = lines.join("<br>");
       };
       // Set the interval in ms to refresh the time
-      setInterval(showNow, 3000);
+      setInterval(showNow, 1000);
     </script>
   </body>
 </html>
